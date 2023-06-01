@@ -1,12 +1,11 @@
-import secrets
 from typing import Annotated
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from datetime import datetime, timedelta
 from typing import Annotated
 
 from app.models.token import TokenData
-from app.models.user import User, UserInDB, get_user
+from app.models.user import UserInDB
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from app.core import  configuration

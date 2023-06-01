@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from app.routers import auth
+from app.routers import auth, locations
 from fastapi.responses import JSONResponse, HTMLResponse
 
 TITLE = configuration.APP_TITLE
@@ -51,3 +51,4 @@ async def redoc_html(
 
 
 app.include_router(auth.router, prefix="/auth", tags=["Security"])
+app.include_router(locations.router, prefix="/location", tags=["Location"])

@@ -2,9 +2,10 @@ from datetime import datetime
 from typing import Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
+from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 
-class User(BaseModel):
+class User(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     username: str
     email: Optional[str] = None
@@ -14,18 +15,7 @@ class User(BaseModel):
     admin: Optional[bool] = False
     editor: Optional[bool] = False
 
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
-
 class UserInDB(User):
     hashed_password: Optional[str] = None
     date_insert: Optional[datetime] = None
     date_update: Optional[datetime] = None
-
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
