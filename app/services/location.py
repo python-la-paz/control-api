@@ -2,7 +2,7 @@ from datetime import datetime
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
-from app.models.location import Location, LocationInDB
+from app.models.location import LocationInDB
 from app.utils.mongo_validator import PyObjectId
 
 
