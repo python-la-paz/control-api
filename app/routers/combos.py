@@ -1,5 +1,6 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
+from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
 from app.models.combo import Combo, ComboInDB
 
@@ -21,7 +22,7 @@ async def insert_combo(combo: Combo, current_user: Annotated[UserInDB, Depends(g
 async def delete_combo(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = ComboService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Combo not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Combo not found")
     ComboService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -29,7 +30,7 @@ async def delete_combo(id: PyObjectId, current_user: Annotated[UserInDB, Depends
 async def get_combo(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = ComboService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Combo not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Combo not found")
     return find
 
 @router.get("", response_model=List[Combo])

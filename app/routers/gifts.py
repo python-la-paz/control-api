@@ -1,5 +1,6 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
+from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
 from app.models.gift import Gift, GiftInDB
 
@@ -21,7 +22,7 @@ async def insert_gift(gift: Gift, current_user: Annotated[UserInDB, Depends(get_
 async def delete_gift(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = GiftService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Gift not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Gift not found")
     GiftService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -29,7 +30,7 @@ async def delete_gift(id: PyObjectId, current_user: Annotated[UserInDB, Depends(
 async def get_gift(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = GiftService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Gift not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Gift not found")
     return find
 
 @router.get("", response_model=List[Gift])

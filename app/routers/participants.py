@@ -1,5 +1,6 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
+from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
 from app.models.participant import Participant, ParticipantInDB
 
@@ -21,7 +22,7 @@ async def insert_participant(participant: Participant, current_user: Annotated[U
 async def delete_participant(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = ParticipantService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Participant not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Participant not found")
     ParticipantService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -29,7 +30,7 @@ async def delete_participant(id: PyObjectId, current_user: Annotated[UserInDB, D
 async def get_participant(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = ParticipantService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Participant not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Participant not found")
     return find
 
 @router.get("", response_model=List[Participant])

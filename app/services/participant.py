@@ -38,3 +38,17 @@ class ParticipantService:
     def get_all(cls) -> list[ParticipantInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [ParticipantInDB(**item) for item in items]
+    
+    @classmethod
+    def get_by_control_code(cls, control_code: str) -> ParticipantInDB | None | bool:
+        finds = cls.TABLE.find({"control_code": control_code, "disabled": False})
+        items = []
+        for find in finds:
+            items.append(ParticipantInDB(**find))
+            
+        if len(items) == 1:
+            return items[0]
+        elif len(items) > 1:
+            return False
+        else:
+            return None

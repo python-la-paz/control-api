@@ -1,5 +1,6 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
+from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
 from app.models.location import Location, LocationInDB
 
@@ -21,7 +22,7 @@ async def insert_location(location: Location, current_user: Annotated[UserInDB, 
 async def delete_location(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = LocationService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Location not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Location not found")
     LocationService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -29,7 +30,7 @@ async def delete_location(id: PyObjectId, current_user: Annotated[UserInDB, Depe
 async def get_location(id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
     find = LocationService.get(id)
     if find is None:
-        return Response(status_code=status.HTTP_404_NOT_FOUND, content="Location not found")
+        return HTMLResponse(status_code=status.HTTP_404_NOT_FOUND, content="Location not found")
     return find
 
 @router.get("", response_model=List[Location])
