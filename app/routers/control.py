@@ -38,6 +38,12 @@ async def check(
         return HTMLResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="Location not found"
         )
+    # check if participant is enable to enter in location
+    if location_id not in participant.locations:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant is not enable to enter in this location",
+        )
 
     # count check_in
     ins = ControlService.count_checks(participant_control_code, location_id, "in")
