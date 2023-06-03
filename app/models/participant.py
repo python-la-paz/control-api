@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import Field
 from app.models.base import Base
@@ -21,7 +21,9 @@ class Participant(Base):
     t_shirt_size: str = ""
     food_restriction: str = ""
     control_code: str = ""
-    combos: List[str] = []
+    combos: List[PyObjectId] = []
+    locations: List[PyObjectId] = []
+    role: Literal["user", "organizer", "speaker"] = "user"
 
 
 class ParticipantInDB(Participant):
