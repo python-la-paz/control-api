@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-from app.routers import auth, control, gifts, locations, participants, combos, points, presentations, products
+from app.routers import auth, control, gifts, locations, meals, participants, combos, points, presentations, products
 from fastapi.responses import JSONResponse
 
 TITLE = configuration.APP_TITLE
@@ -58,3 +58,4 @@ app.include_router(combos.router, prefix="/api/combo", tags=["Combo"])
 app.include_router(gifts.router, prefix="/api/gift", tags=["Gift"])
 app.include_router(control.router, prefix="/api/control", tags=["Control"])
 app.include_router(points.router, prefix="/api/points", tags=["Points"])
+app.include_router(meals.router, prefix="/api/meals", tags=["Meals"])
