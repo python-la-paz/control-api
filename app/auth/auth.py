@@ -8,7 +8,7 @@ from app.models.token import TokenData
 from app.models.user import UserInDB
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from app.core import  configuration
+from app.core import configuration
 from app.services.user import UserService
 from fastapi.security import OAuth2PasswordBearer
 
@@ -16,6 +16,8 @@ SECRET_KEY = configuration.APP_SECRET_KEY
 ALGORITHM = configuration.ALGORITHM
 
 security = HTTPBasic()
+
+
 def get_current_username_admin(
     credentials: Annotated[HTTPBasicCredentials, Depends(security)]
 ):
@@ -43,6 +45,7 @@ def get_current_username_admin(
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -50,7 +53,10 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -76,12 +82,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         )
     return user
 
+
 async def get_current_active_user(
     current_user: Annotated[UserInDB, Depends(get_current_user)]
 ):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()

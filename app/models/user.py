@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 
+
 class User(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     username: str
@@ -14,6 +15,7 @@ class User(Base):
     disabled: Optional[bool] = False
     admin: Optional[bool] = False
     editor: Optional[bool] = False
+
 
 class UserInDB(User):
     hashed_password: Optional[str] = None

@@ -30,11 +30,13 @@ class RedeemCombo(Base):
     user_control: str = ""
     message: str = ""
 
+
 class RedeemComboInDB(RedeemCombo):
     disabled: Optional[bool] = False
     date_insert: Optional[datetime] = None
     date_update: Optional[datetime] = None
     username_insert: Optional[str] = None
+
 
 class RedeemComboRequest(Base):
     participant_control_code: str = ""

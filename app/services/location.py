@@ -21,19 +21,23 @@ class LocationService:
 
     @classmethod
     def delete(cls, id: PyObjectId) -> LocationInDB | None:
-        deleted = cls.TABLE.find_one_and_update( {"_id": id}, {"$set": {"disabled": True}}, return_document=ReturnDocument.AFTER)
+        deleted = cls.TABLE.find_one_and_update(
+            {"_id": id},
+            {"$set": {"disabled": True}},
+            return_document=ReturnDocument.AFTER,
+        )
         if deleted is not None:
             return LocationInDB(**deleted)
         else:
             return None
-    
+
     @classmethod
     def get(cls, id: PyObjectId) -> LocationInDB | None:
         item = cls.TABLE.find_one({"_id": id, "disabled": False})
         if item is not None:
             return LocationInDB(**item)
         return item
-    
+
     @classmethod
     def get_all(cls) -> list[LocationInDB]:
         items = cls.TABLE.find({"disabled": False})

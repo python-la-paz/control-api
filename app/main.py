@@ -4,7 +4,18 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Request
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-from app.routers import auth, control, gifts, locations, meals, participants, combos, points, presentations, products
+from app.routers import (
+    auth,
+    control,
+    gifts,
+    locations,
+    meals,
+    participants,
+    combos,
+    points,
+    presentations,
+    products,
+)
 from fastapi.responses import JSONResponse
 
 TITLE = configuration.APP_TITLE
@@ -17,16 +28,19 @@ app = FastAPI(
     redoc_url=None,
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 @app.get("/api/docs", tags=["Documentation"])  # Tag it as "documentation" for our docs
 async def get_documentation(
     request: Request, user: Optional[dict] = Depends(get_current_username_admin)
 ):  # This dependency protects our endpoint!
     response = get_swagger_ui_html(
-        openapi_url="/api/openapi.json", title="Documentation",
+        openapi_url="/api/openapi.json",
+        title="Documentation",
     )
     return response
 
@@ -51,7 +65,9 @@ async def redoc_html(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Security"])
 app.include_router(locations.router, prefix="/api/location", tags=["Location"])
-app.include_router(presentations.router, prefix="/api/presentation", tags=["Presentations"])
+app.include_router(
+    presentations.router, prefix="/api/presentation", tags=["Presentations"]
+)
 app.include_router(participants.router, prefix="/api/participant", tags=["Participant"])
 app.include_router(products.router, prefix="/api/product", tags=["Product"])
 app.include_router(combos.router, prefix="/api/combo", tags=["Combo"])

@@ -21,28 +21,37 @@ class PresentationService:
 
     @classmethod
     def delete(cls, id: PyObjectId) -> PresentationInDB | None:
-        deleted = cls.TABLE.find_one_and_update( {"_id": id}, {"$set": {"disabled": True}}, return_document=ReturnDocument.AFTER)
+        deleted = cls.TABLE.find_one_and_update(
+            {"_id": id},
+            {"$set": {"disabled": True}},
+            return_document=ReturnDocument.AFTER,
+        )
         if deleted is not None:
             return PresentationInDB(**deleted)
         else:
             return None
-    
+
     @classmethod
     def get(cls, id: PyObjectId) -> PresentationInDB | None:
         item = cls.TABLE.find_one({"_id": id, "disabled": False})
         if item is not None:
             return PresentationInDB(**item)
         return item
-    
+
     @classmethod
     def get_all(cls) -> list[PresentationInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [PresentationInDB(**item) for item in items]
-    
 
     @classmethod
-    def update_presentation(cls, id: PyObjectId, points: int = 0) -> PresentationInDB | None:
-        item = cls.TABLE.find_one_and_update( {"_id": id, "disabled": False}, {"$set": {"points": points}}, return_document=ReturnDocument.AFTER)
+    def update_presentation(
+        cls, id: PyObjectId, points: int = 0
+    ) -> PresentationInDB | None:
+        item = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {"$set": {"points": points}},
+            return_document=ReturnDocument.AFTER,
+        )
         if item is not None:
             return PresentationInDB(**item)
         return item

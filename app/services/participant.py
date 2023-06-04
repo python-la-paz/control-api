@@ -68,7 +68,7 @@ class ParticipantService:
             return ParticipantInDB(**updated)
         else:
             return None
-    
+
     @classmethod
     def subtract_points(cls, id: PyObjectId, points: int) -> ParticipantInDB | None:
         updated = cls.TABLE.find_one_and_update(

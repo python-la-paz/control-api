@@ -14,6 +14,7 @@ class Point(Base):
     date: datetime = None
     user_control: str = ""
 
+
 class PointInDB(Point):
     disabled: Optional[bool] = False
     date_insert: Optional[datetime] = None

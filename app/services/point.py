@@ -21,27 +21,39 @@ class PointService:
 
     @classmethod
     def delete(cls, id: PyObjectId) -> PointInDB | None:
-        deleted = cls.TABLE.find_one_and_update( {"_id": id}, {"$set": {"disabled": True}}, return_document=ReturnDocument.AFTER)
+        deleted = cls.TABLE.find_one_and_update(
+            {"_id": id},
+            {"$set": {"disabled": True}},
+            return_document=ReturnDocument.AFTER,
+        )
         if deleted is not None:
             return PointInDB(**deleted)
         else:
             return None
-    
+
     @classmethod
     def get(cls, id: PyObjectId) -> PointInDB | None:
         item = cls.TABLE.find_one({"_id": id, "disabled": False})
         if item is not None:
             return PointInDB(**item)
         return item
-    
+
     @classmethod
     def get_all(cls) -> list[PointInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [PointInDB(**item) for item in items]
-    
+
     @classmethod
-    def get_by_participant_and_presentation(cls, participant_control_code: str, presentation_id: PyObjectId) -> PointInDB | None:
-        item = cls.TABLE.find_one({"participant_control_code": participant_control_code, "presentation": presentation_id, "disabled": False})
+    def get_by_participant_and_presentation(
+        cls, participant_control_code: str, presentation_id: PyObjectId
+    ) -> PointInDB | None:
+        item = cls.TABLE.find_one(
+            {
+                "participant_control_code": participant_control_code,
+                "presentation": presentation_id,
+                "disabled": False,
+            }
+        )
         if item is not None:
             return PointInDB(**item)
         return item

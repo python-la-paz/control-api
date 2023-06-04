@@ -21,14 +21,18 @@ class ProductService:
 
     @classmethod
     def delete(cls, id: PyObjectId) -> ProductInDB | None:
-        deleted = cls.TABLE.find_one_and_update( {"_id": id}, {"$set": {"disabled": True}}, return_document=ReturnDocument.AFTER)
+        deleted = cls.TABLE.find_one_and_update(
+            {"_id": id},
+            {"$set": {"disabled": True}},
+            return_document=ReturnDocument.AFTER,
+        )
         if deleted is not None:
             return ProductInDB(**deleted)
         else:
             return None
-    
+
     @classmethod
-    def update(cls, id:PyObjectId, item: ProductInDB) -> ProductInDB | None:
+    def update(cls, id: PyObjectId, item: ProductInDB) -> ProductInDB | None:
         item.date_update = datetime.utcnow()
         if hasattr(item, "id"):
             delattr(item, "id")
@@ -38,20 +42,23 @@ class ProductService:
             delattr(item, "username_insert")
         if hasattr(item, "disabled"):
             delattr(item, "disabled")
-        updated = cls.TABLE.find_one_and_update( {"_id": id, "disabled": False}, {"$set": item.dict(by_alias=True)}, return_document=ReturnDocument.AFTER)
+        updated = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {"$set": item.dict(by_alias=True)},
+            return_document=ReturnDocument.AFTER,
+        )
         if updated is not None:
             return ProductInDB(**updated)
         else:
             return None
-    
-    
+
     @classmethod
     def get(cls, id: PyObjectId) -> ProductInDB | None:
         item = cls.TABLE.find_one({"_id": id, "disabled": False})
         if item is not None:
             return ProductInDB(**item)
         return item
-    
+
     @classmethod
     def get_all(cls) -> list[ProductInDB]:
         items = cls.TABLE.find({"disabled": False})

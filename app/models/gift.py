@@ -27,6 +27,7 @@ class RedeemGift(Base):
     date: datetime = None
     user_control: str = ""
 
+
 class RedeemGiftInDB(RedeemGift):
     disabled: Optional[bool] = False
     date_insert: Optional[datetime] = None

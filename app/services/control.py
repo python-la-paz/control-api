@@ -18,17 +18,28 @@ class ControlService:
         inserted = cls.TABLE.insert_one(item.dict(by_alias=True))
         item.id = inserted.inserted_id
         return item
-    
+
     @classmethod
     def get_all(cls) -> list[ControlInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [ControlInDB(**item) for item in items]
-    
+
     @classmethod
     def get_all_by_participant(cls, participant_control_code: str) -> list[ControlInDB]:
-        items = cls.TABLE.find({"participant_control_code": participant_control_code, "disabled": False})
+        items = cls.TABLE.find(
+            {"participant_control_code": participant_control_code, "disabled": False}
+        )
         return [ControlInDB(**item) for item in items]
-    
+
     @classmethod
-    def count_checks(cls, participant_control_code: str, location: PyObjectId, control: str) -> int:
-        return cls.TABLE.count_documents({"participant_control_code": participant_control_code, "location": location , "control": control, "disabled": False})
+    def count_checks(
+        cls, participant_control_code: str, location: PyObjectId, control: str
+    ) -> int:
+        return cls.TABLE.count_documents(
+            {
+                "participant_control_code": participant_control_code,
+                "location": location,
+                "control": control,
+                "disabled": False,
+            }
+        )

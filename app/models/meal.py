@@ -12,6 +12,7 @@ class RedeemMeal(Base):
     date: datetime = None
     user_control: str = ""
 
+
 class RedeemMealInDB(RedeemMeal):
     disabled: Optional[bool] = False
     date_insert: Optional[datetime] = None

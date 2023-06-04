@@ -2,5 +2,5 @@ import pymongo
 
 from app.core import configuration
 
-client  = pymongo.MongoClient(configuration.APP_MONGO_URL)
+client = pymongo.MongoClient(configuration.APP_MONGO_URL)
 db = client.get_database(configuration.APP_MONGO_DB)
