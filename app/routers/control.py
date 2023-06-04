@@ -90,13 +90,20 @@ async def check(
             status_code=status.HTTP_400_BAD_REQUEST,
             content="Check out inconsistent with check in",
         )
-    
+
+
 @router.get("", response_model=List[Control])
-async def get_all_control(current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
+async def get_all_control(
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
     finds = ControlService.get_all()
     return finds
 
+
 @router.get("/{participant_control_code}", response_model=List[Control])
-async def get_all_control_by_participant(participant_control_code: str, current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
+async def get_all_control_by_participant(
+    participant_control_code: str,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+):
     finds = ControlService.get_all_by_participant(participant_control_code)
     return finds

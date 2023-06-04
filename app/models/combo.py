@@ -21,7 +21,7 @@ class ComboInDB(Combo):
     username_update: Optional[str] = None
 
 
-class GiveCombo(Base):
+class RedeemCombo(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     participant_control_code: str = ""
     combo: PyObjectId = None
@@ -30,13 +30,13 @@ class GiveCombo(Base):
     user_control: str = ""
     message: str = ""
 
-class GiveComboInDB(GiveCombo):
+class RedeemComboInDB(RedeemCombo):
     disabled: Optional[bool] = False
     date_insert: Optional[datetime] = None
     date_update: Optional[datetime] = None
     username_insert: Optional[str] = None
 
-class GiveComboRequest(Base):
+class RedeemComboRequest(Base):
     participant_control_code: str = ""
     combo_id: PyObjectId = None
     products_id: List[PyObjectId] = []

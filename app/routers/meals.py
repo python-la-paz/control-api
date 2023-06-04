@@ -50,7 +50,7 @@ async def get_redeem_meal(
     return find
 
 
-@router.get("", response_model=List[RedeemMeal])
+@router.get("/redeem/user", response_model=List[RedeemMeal])
 async def get_all_redeem_meal(
     current_user: Annotated[UserInDB, Depends(get_current_active_user)]
 ):
@@ -58,7 +58,7 @@ async def get_all_redeem_meal(
     return finds
 
 
-@router.get("/participant/{participant_control_code}", response_model=List[RedeemMeal])
+@router.get("/redeem/user/{participant_control_code}", response_model=List[RedeemMeal])
 async def get_all_meal_by_participant(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
@@ -73,7 +73,7 @@ async def get_all_meal_by_participant(
     return finds
 
 
-@router.post("/redeem", response_model=RedeemMeal)
+@router.post("/redeem/user", response_model=RedeemMeal)
 async def redeem_meal(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],

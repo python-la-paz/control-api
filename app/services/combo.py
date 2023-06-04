@@ -3,7 +3,7 @@ from typing import List
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
-from app.models.combo import ComboInDB, GiveComboInDB
+from app.models.combo import ComboInDB, RedeemComboInDB
 from app.utils.mongo_validator import PyObjectId
 
 
@@ -56,11 +56,11 @@ class ComboService:
         items = cls.TABLE.find({"disabled": False})
         return [ComboInDB(**item) for item in items]
     
-class GiveComboService:
-    TABLE = db.give_combos
+class RedeemComboService:
+    TABLE = db.redeem_combos
 
     @classmethod
-    def insert(cls, item: GiveComboInDB) -> GiveComboInDB:
+    def insert(cls, item: RedeemComboInDB) -> RedeemComboInDB:
         if hasattr(item, "id"):
             delattr(item, "id")
         item.date_insert = datetime.utcnow()
@@ -70,11 +70,16 @@ class GiveComboService:
         return item
     
     @classmethod
-    def search_by_participant_and_combo(cls, participant_control_code: str, combo_id: PyObjectId) -> List[GiveComboInDB]:
+    def get_all(cls) -> List[RedeemComboInDB]:
+        items = cls.TABLE.find({"disabled": False})
+        return [RedeemComboInDB(**item) for item in items]
+
+    @classmethod
+    def search_by_participant_and_combo(cls, participant_control_code: str, combo_id: PyObjectId) -> List[RedeemComboInDB]:
         items = cls.TABLE.find({"participant_control_code": participant_control_code, "combo": combo_id ,  "disabled": False})
-        return [GiveComboInDB(**item) for item in items]
+        return [RedeemComboInDB(**item) for item in items]
     
     @classmethod
-    def search_by_participant(cls, participant_control_code: str) -> List[GiveComboInDB]:
+    def search_by_participant(cls, participant_control_code: str) -> List[RedeemComboInDB]:
         items = cls.TABLE.find({"participant_control_code": participant_control_code, "disabled": False})
-        return [GiveComboInDB(**item) for item in items]
+        return [RedeemComboInDB(**item) for item in items]
