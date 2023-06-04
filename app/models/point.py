@@ -8,10 +8,11 @@ from app.utils.mongo_validator import PyObjectId
 
 class Point(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    name: str = ""
-    value: int = 0
-    location: PyObjectId = Field(alias="location", default=None)
-
+    participant_control_code: str = ""
+    presentation: PyObjectId = None
+    points: int = 0
+    date: datetime = None
+    user_control: str = ""
 
 class PointInDB(Point):
     disabled: Optional[bool] = False

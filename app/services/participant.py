@@ -21,34 +21,62 @@ class ParticipantService:
 
     @classmethod
     def delete(cls, id: PyObjectId) -> ParticipantInDB | None:
-        deleted = cls.TABLE.find_one_and_update( {"_id": id}, {"$set": {"disabled": True}}, return_document=ReturnDocument.AFTER)
+        deleted = cls.TABLE.find_one_and_update(
+            {"_id": id},
+            {"$set": {"disabled": True}},
+            return_document=ReturnDocument.AFTER,
+        )
         if deleted is not None:
             return ParticipantInDB(**deleted)
         else:
             return None
-    
+
     @classmethod
     def get(cls, id: PyObjectId) -> ParticipantInDB | None:
         item = cls.TABLE.find_one({"_id": id, "disabled": False})
         if item is not None:
             return ParticipantInDB(**item)
         return item
-    
+
     @classmethod
     def get_all(cls) -> list[ParticipantInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [ParticipantInDB(**item) for item in items]
-    
+
     @classmethod
     def get_by_control_code(cls, control_code: str) -> ParticipantInDB | None | bool:
         finds = cls.TABLE.find({"control_code": control_code, "disabled": False})
         items = []
         for find in finds:
             items.append(ParticipantInDB(**find))
-            
+
         if len(items) == 1:
             return items[0]
         elif len(items) > 1:
             return False
+        else:
+            return None
+
+    @classmethod
+    def add_points(cls, id: PyObjectId, points: int) -> ParticipantInDB | None:
+        updated = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {"$inc": {"points": points}, "$set": {"date_update": datetime.utcnow()}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if updated is not None:
+            return ParticipantInDB(**updated)
+        else:
+            return None
+    
+    @classmethod
+    def subtract_points(cls, id: PyObjectId, points: int) -> ParticipantInDB | None:
+        updated = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {"$inc": {"points": -points}, "$set": {"date_update": datetime.utcnow()}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if updated is not None:
+            return ParticipantInDB(**updated)
         else:
             return None

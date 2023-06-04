@@ -39,10 +39,9 @@ class PointService:
         items = cls.TABLE.find({"disabled": False})
         return [PointInDB(**item) for item in items]
     
-
     @classmethod
-    def update_point(cls, id: PyObjectId, value: int = 0) -> PointInDB | None:
-        item = cls.TABLE.find_one_and_update( {"_id": id, "disabled": False}, {"$set": {"value": value}}, return_document=ReturnDocument.AFTER)
+    def get_by_participant_and_presentation(cls, participant_control_code: str, presentation_id: PyObjectId) -> PointInDB | None:
+        item = cls.TABLE.find_one({"participant_control_code": participant_control_code, "presentation": presentation_id, "disabled": False})
         if item is not None:
             return PointInDB(**item)
         return item

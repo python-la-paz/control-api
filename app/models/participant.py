@@ -24,6 +24,7 @@ class Participant(Base):
     combos: List[PyObjectId] = []
     locations: List[PyObjectId] = []
     role: Literal["user", "organizer", "speaker"] = "user"
+    points: int = 0
 
 
 class ParticipantInDB(Participant):
