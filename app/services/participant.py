@@ -80,3 +80,29 @@ class ParticipantService:
             return ParticipantInDB(**updated)
         else:
             return None
+    
+    @classmethod
+    def get_by_ci(cls, ci: str) -> ParticipantInDB | None:
+        item = cls.TABLE.find_one({"ci": ci, "disabled": False})
+        if item is not None:
+            return ParticipantInDB(**item)
+        return item
+
+    @classmethod
+    def exist_control_code (cls, control_code: str) -> bool:
+        item = cls.TABLE.find_one({"control_code": control_code, "disabled": False})
+        if item is not None:
+            return True
+        return False
+    
+    @classmethod
+    def finish_registration (cls, id: PyObjectId, control_code: str) -> ParticipantInDB | None:
+        updated = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {"$set": {"control_code": control_code, "registration": True, "date_update": datetime.utcnow()}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if updated is not None:
+            return ParticipantInDB(**updated)
+        else:
+            return None

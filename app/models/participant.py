@@ -21,6 +21,7 @@ class Participant(Base):
     t_shirt_size: str = ""
     food_restriction: str = ""
     control_code: str = ""
+    registration: bool = False
     combos: List[PyObjectId] = []
     locations: List[PyObjectId] = []
     role: Literal["user", "organizer", "speaker"] = "user"
