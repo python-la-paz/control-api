@@ -14,6 +14,8 @@ class GiftService:
     def insert(cls, item: GiftInDB) -> GiftInDB:
         if hasattr(item, "id"):
             delattr(item, "id")
+        if hasattr(item, "product_name"):
+            delattr(item, "product_name")
         item.date_insert = datetime.utcnow()
         item.date_update = item.date_insert
         inserted = cls.TABLE.insert_one(item.dict(by_alias=True))
@@ -42,6 +44,32 @@ class GiftService:
     @classmethod
     def get_all(cls) -> List[GiftInDB]:
         items = cls.TABLE.find({"disabled": False})
+        return [GiftInDB(**item) for item in items]
+
+    @classmethod
+    def get_all_gift_and_products(cls) -> List[GiftInDB]:
+        query = [
+            {
+                "$lookup": {
+                    "from": "products",
+                    "localField": "product",
+                    "foreignField": "_id",
+                    "as": "product",
+                }
+            },
+            {"$unwind": "$product"},
+            {"$match": {"disabled": False}},
+            {
+                "$project": {
+                    "_id": 1,
+                    "name": 1,
+                    "points": 1,
+                    "product": "$product._id",
+                    "product_name": "$product.name",
+                }
+            },
+        ]
+        items = cls.TABLE.aggregate(query)
         return [GiftInDB(**item) for item in items]
 
 

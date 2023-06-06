@@ -25,7 +25,7 @@ async def insert_gift(
     return inserted
 
 
-@router.delete("/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
+@router.delete("/id/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_gift(
     id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
 ):
@@ -38,7 +38,7 @@ async def delete_gift(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/{id}", response_model=Gift)
+@router.get("/id/{id}", response_model=Gift)
 async def get_gift(
     id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
 ):
@@ -55,6 +55,13 @@ async def get_all_gift(
     current_user: Annotated[UserInDB, Depends(get_current_active_user)]
 ):
     finds = GiftService.get_all()
+    return finds
+
+@router.get("/products", response_model=List[Gift])
+async def get_all_gift_and_products(
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    finds = GiftService.get_all_gift_and_products()
     return finds
 
 
@@ -96,7 +103,7 @@ async def redeem_point(
     # check if participant has enough points
     if participant.points < gift.points:
         return HTMLResponse(
-            status_code=status.HTTP_400_BAD_REQUEST, content="Not enough points"
+            status_code=status.HTTP_400_BAD_REQUEST, content=f"Not enough points, participant has {participant.points} points"
         )
     # subtract points to participant
     participant = ParticipantService.subtract_points(participant.id, gift.points)

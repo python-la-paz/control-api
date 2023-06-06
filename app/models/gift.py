@@ -9,6 +9,7 @@ from app.utils.mongo_validator import PyObjectId
 class Gift(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     product: PyObjectId = None
+    product_name: Optional[str] = None
     points: int = 0
 
 
