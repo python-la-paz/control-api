@@ -58,7 +58,7 @@ async def get_all_redeem_meal(
     return finds
 
 
-@router.get("/redeem/user/{participant_control_code}", response_model=List[RedeemMeal])
+@router.get("/redeem/user/code", response_model=List[RedeemMeal])
 async def get_all_meal_by_participant(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],

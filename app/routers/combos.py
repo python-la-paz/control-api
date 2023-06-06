@@ -31,7 +31,7 @@ async def insert_combo(
     return inserted
 
 
-@router.delete("/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
+@router.delete("/id/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_combo(
     id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
 ):
@@ -59,7 +59,7 @@ async def update_combo(
     return updated
 
 
-@router.get("/{id}", response_model=Combo)
+@router.get("/id/{id}", response_model=Combo)
 async def get_combo(
     id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
 ):
@@ -78,9 +78,23 @@ async def get_all_combo(
     finds = ComboService.get_all()
     return finds
 
+@router.get("/products", response_model=List[Combo])
+async def get_all_combo_and_products(
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    finds = ComboService.get_all_and_products()
+    return finds
+@router.post("/products", response_model=List[Combo])
+async def get_all_combo_and_products_by_ids(
+    combos: List[PyObjectId],
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    finds = ComboService.get_all_and_products_by_ids(combos)
+    return finds
+
 
 # get redeemd combos
-@router.get("/redeem/user/{participant_control_code}", response_model=List[RedeemCombo])
+@router.get("/redeem/user/code", response_model=List[RedeemCombo])
 async def get_redeemed_combo(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
@@ -138,7 +152,7 @@ async def redeem_combo(
     product_to_redeem = []
     products = list(dict.fromkeys(redeem.products_id))
     print(products)
-    for product_id in products:
+    for product_id in combo.products:
         if product_id not in combo.products:
             product_not_exist.append(product_id)
         else:

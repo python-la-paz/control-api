@@ -14,6 +14,8 @@ class ComboService:
     def insert(cls, item: ComboInDB) -> ComboInDB:
         if hasattr(item, "id"):
             delattr(item, "id")
+        if hasattr(item, "products_items"):
+            delattr(item, "products_items")
         item.date_insert = datetime.utcnow()
         item.date_update = item.date_insert
         inserted = cls.TABLE.insert_one(item.dict(by_alias=True))
@@ -43,6 +45,8 @@ class ComboService:
             delattr(item, "username_insert")
         if hasattr(item, "disabled"):
             delattr(item, "disabled")
+        if hasattr(item, "products_items"):
+            delattr(item, "products_items")
         updated = cls.TABLE.find_one_and_update(
             {"_id": id, "disabled": False},
             {"$set": item.dict(by_alias=True)},
@@ -61,8 +65,86 @@ class ComboService:
         return item
 
     @classmethod
-    def get_all(cls) -> list[ComboInDB]:
+    def get_all(cls) -> List[ComboInDB]:
         items = cls.TABLE.find({"disabled": False})
+        return [ComboInDB(**item) for item in items]
+
+    @classmethod
+    def get_all_and_products(cls) -> List[ComboInDB]:
+        query = [
+            {
+                "$lookup": {
+                    "from": "products",
+                    "localField": "products",
+                    "foreignField": "_id",
+                    "as": "products",
+                }
+            },
+            {"$match": {"disabled": False}},
+            {
+                "$project": {
+                    "_id": 1,
+                    "name": 1,
+                    "products": {
+                        "$map": {
+                            "input": "$products",
+                            "as": "product",
+                            "in": "$$product._id",
+                        }
+                    },
+                    "products_items": {
+                        "$map": {
+                            "input": "$products",
+                            "as": "product",
+                            "in": {
+                                "_id": "$$product._id",
+                                "name": "$$product.name",
+                            },
+                        }
+                    },
+                }
+            },
+        ]
+        items = cls.TABLE.aggregate(query)
+        return [ComboInDB(**item) for item in items]
+
+    @classmethod
+    def get_all_and_products_by_ids(cls, combos: List[PyObjectId]) -> List[ComboInDB]:
+        query = [
+            {
+                "$lookup": {
+                    "from": "products",
+                    "localField": "products",
+                    "foreignField": "_id",
+                    "as": "products",
+                }
+            },
+            {"$match": {"disabled": False, "_id": {"$in": combos}}},
+            {
+                "$project": {
+                    "_id": 1,
+                    "name": 1,
+                    "products": {
+                        "$map": {
+                            "input": "$products",
+                            "as": "product",
+                            "in": "$$product._id",
+                        }
+                    },
+                    "products_items": {
+                        "$map": {
+                            "input": "$products",
+                            "as": "product",
+                            "in": {
+                                "_id": "$$product._id",
+                                "name": "$$product.name",
+                            },
+                        }
+                    },
+                }
+            },
+        ]
+        items = cls.TABLE.aggregate(query)
         return [ComboInDB(**item) for item in items]
 
 

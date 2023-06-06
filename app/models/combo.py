@@ -5,12 +5,16 @@ from pydantic import Field
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 
+class Products(Base):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    name: str = ""
 
 class Combo(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     name: str = ""
     description: str = ""
-    products: list[PyObjectId] = []
+    products: List[PyObjectId] = []
+    products_items: List[Products] = []
 
 
 class ComboInDB(Combo):

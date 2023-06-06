@@ -77,3 +77,14 @@ async def register_participant(ci: str,control_code:str,  current_user: Annotate
 
     finish = ParticipantService.finish_registration(find.id, control_code)
     return finish
+
+@router.get("/user/code", response_model=Participant)
+async def get_participant_control_code(
+    participant_control_code: str, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    find = ParticipantService.get_by_control_code(participant_control_code)
+    if find is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    return find

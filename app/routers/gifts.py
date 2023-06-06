@@ -73,7 +73,7 @@ async def get_all_redeem_gift(
     return finds
 
 
-@router.get("/redeem/user/{participant_control_code}", response_model=List[RedeemGift])
+@router.get("/redeem/user/code", response_model=List[RedeemGift])
 async def get_all_redeem_gift_by_participant(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],

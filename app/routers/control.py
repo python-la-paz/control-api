@@ -100,7 +100,7 @@ async def get_all_control(
     return finds
 
 
-@router.get("/{participant_control_code}", response_model=List[Control])
+@router.get("/code", response_model=List[Control])
 async def get_all_control_by_participant(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
