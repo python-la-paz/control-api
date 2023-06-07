@@ -56,8 +56,13 @@ async def get_all_participant(
     finds = ParticipantService.get_all()
     return finds
 
+
 @router.post("/registration", response_model=Participant)
-async def register_participant(ci: str,control_code:str,  current_user: Annotated[UserInDB, Depends(get_current_active_user)]):
+async def register_participant(
+    ci: str,
+    control_code: str,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+):
     find = ParticipantService.get_by_ci(ci)
     if find is None:
         return HTMLResponse(
@@ -65,26 +70,52 @@ async def register_participant(ci: str,control_code:str,  current_user: Annotate
         )
     if find.registration:
         return HTMLResponse(
-            status_code=status.HTTP_400_BAD_REQUEST, content="Participant already registered"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant already registered",
         )
-    #search other use with the same control code
+    # search other use with the same control code
     exist = ParticipantService.exist_control_code(control_code)
-    
+
     if exist:
         return HTMLResponse(
-            status_code=status.HTTP_400_BAD_REQUEST, content="Control code already exist in other user"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Control code already exist in other user",
         )
 
     finish = ParticipantService.finish_registration(find.id, control_code)
     return finish
 
+
 @router.get("/user/code", response_model=Participant)
 async def get_participant_control_code(
-    participant_control_code: str, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    participant_control_code: str,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = ParticipantService.get_by_control_code(participant_control_code)
     if find is None:
         return HTMLResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    if find is False:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Multiple participant with same control code found",
+        )
+    return find
+
+
+@router.get("/user/ci", response_model=Participant)
+async def get_participant_ci(
+    ci: str, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    find = ParticipantService.get_by_control_ci(ci)
+    if find is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    if find is False:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Multiple Participants with same ci found",
         )
     return find

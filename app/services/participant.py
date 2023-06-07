@@ -56,6 +56,20 @@ class ParticipantService:
             return False
         else:
             return None
+        
+    @classmethod
+    def get_by_control_ci(cls, ci: str) -> ParticipantInDB | None | bool:
+        finds = cls.TABLE.find({"ci": ci, "disabled": False})
+        items = []
+        for find in finds:
+            items.append(ParticipantInDB(**find))
+
+        if len(items) == 1:
+            return items[0]
+        elif len(items) > 1:
+            return False
+        else:
+            return None
 
     @classmethod
     def add_points(cls, id: PyObjectId, points: int) -> ParticipantInDB | None:
