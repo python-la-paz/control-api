@@ -13,6 +13,10 @@ class ParticipantService:
     def insert(cls, item: ParticipantInDB) -> ParticipantInDB:
         if hasattr(item, "id"):
             delattr(item, "id")
+        if hasattr(item, "combos_items"):
+            delattr(item, "combos_items")
+        if hasattr(item, "locations_items"):
+            delattr(item, "locations_items")
         item.date_insert = datetime.utcnow()
         item.date_update = item.date_insert
         inserted = cls.TABLE.insert_one(item.dict(by_alias=True))
@@ -56,7 +60,68 @@ class ParticipantService:
             return False
         else:
             return None
-        
+
+    @classmethod
+    def get_by_control_code_full(
+        cls, control_code: str
+    ) -> ParticipantInDB | None | bool:
+        query = [
+            {
+                "$lookup": {
+                    "from": "locations",
+                    "localField": "locations",
+                    "foreignField": "_id",
+                    "as": "locations_info",
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "combos",
+                    "localField": "combos",
+                    "foreignField": "_id",
+                    "as": "combos_info",
+                }
+            },
+            {"$match": {"disabled": False, "control_code": control_code}},
+            {
+                "$project": {
+                    "_id": 1,
+                    "name": 1,
+                    "gender": 1,
+                    "t_shirt_size": 1,
+                    "food_restriction": 1,
+                    "registration": 1,
+                    "phone": 1,
+                    "role": 1,
+                    "combos": 1,
+                    "points": 1,
+                    "locations": 1,
+                    "locations_items": {
+                        "$map": {
+                            "input": "$locations_info",
+                            "as": "locations",
+                            "in": "$$locations.name",
+                        }
+                    },
+                    "combos_items": {
+                        "$map": {
+                            "input": "$combos_info",
+                            "as": "combos",
+                            "in": "$$combos.name",
+                        }
+                    },
+                }
+            },
+        ]
+        items = cls.TABLE.aggregate(query)
+        result = [ParticipantInDB(**item) for item in items]
+        if len(result) == 1:
+            return result[0]
+        elif len(result) > 1:
+            return False
+        else:
+            return None
+
     @classmethod
     def get_by_control_ci(cls, ci: str) -> ParticipantInDB | None | bool:
         finds = cls.TABLE.find({"ci": ci, "disabled": False})
@@ -94,7 +159,7 @@ class ParticipantService:
             return ParticipantInDB(**updated)
         else:
             return None
-    
+
     @classmethod
     def get_by_ci(cls, ci: str) -> ParticipantInDB | None:
         item = cls.TABLE.find_one({"ci": ci, "disabled": False})
@@ -103,17 +168,25 @@ class ParticipantService:
         return item
 
     @classmethod
-    def exist_control_code (cls, control_code: str) -> bool:
+    def exist_control_code(cls, control_code: str) -> bool:
         item = cls.TABLE.find_one({"control_code": control_code, "disabled": False})
         if item is not None:
             return True
         return False
-    
+
     @classmethod
-    def finish_registration (cls, id: PyObjectId, control_code: str) -> ParticipantInDB | None:
+    def finish_registration(
+        cls, id: PyObjectId, control_code: str
+    ) -> ParticipantInDB | None:
         updated = cls.TABLE.find_one_and_update(
             {"_id": id, "disabled": False},
-            {"$set": {"control_code": control_code, "registration": True, "date_update": datetime.utcnow()}},
+            {
+                "$set": {
+                    "control_code": control_code,
+                    "registration": True,
+                    "date_update": datetime.utcnow(),
+                }
+            },
             return_document=ReturnDocument.AFTER,
         )
         if updated is not None:

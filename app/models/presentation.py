@@ -13,6 +13,7 @@ class Presentation(Base):
     description: str = ""
     kind: Literal["talk", "workshop"] = "talk"
     points: int = 0
+    participation_points: int = 0
     location: PyObjectId = Field(alias="location", default=None)
 
 

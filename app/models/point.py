@@ -13,6 +13,7 @@ class Point(Base):
     points: int = 0
     date: datetime = None
     user_control: str = ""
+    is_participation: bool = False
 
 
 class PointInDB(Point):

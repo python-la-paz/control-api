@@ -56,6 +56,13 @@ async def get_all_presentation(
     finds = PresentationService.get_all()
     return finds
 
+@router.get("/get/talks", response_model=List[Presentation])
+async def get_all_presentation_talks(
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    finds = PresentationService.get_all_talks()
+    return finds
+
 
 @router.patch("/{id}/points", response_model=Presentation)
 async def update_presentation(

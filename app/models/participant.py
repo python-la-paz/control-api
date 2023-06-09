@@ -24,6 +24,8 @@ class Participant(Base):
     registration: bool = False
     combos: List[PyObjectId] = []
     locations: List[PyObjectId] = []
+    combos_items: List[str] = []
+    locations_items: List[str] = []
     role: Literal["user", "organizer", "speaker"] = "user"
     points: int = 0
 

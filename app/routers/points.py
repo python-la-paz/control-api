@@ -130,3 +130,57 @@ async def redeem_point(
     )
     inserted = PointService.insert(point)
     return inserted
+
+#reedem points participation only talks no workshops
+@router.post("/participation", response_model=Point)
+async def redeem_point_participation(
+    participant_control_code: str,
+    presentation_id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+):
+    # search participant
+    participant = ParticipantService.get_by_control_code(participant_control_code)
+    if participant is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    # search presentation
+    presentation = PresentationService.get(presentation_id)
+    if presentation is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Presentation not found"
+        )
+    # validate only talk
+    if presentation.kind == "workshop":
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participation only for talks",
+        )
+    # participant enable to location
+    if presentation.location not in participant.locations:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant not enable to this presentation",
+        )
+    # actual checkin location
+    in_and_outs = ControlService.count_in_and_outs(participant_control_code, presentation.location)
+    if in_and_outs <= 0:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant not checkin in this presentation",
+        )
+
+    # add points to participant
+    participant = ParticipantService.add_points(participant.id, presentation.participation_points)
+
+    # insert point
+    point = PointInDB(
+        participant_control_code=participant_control_code,
+        presentation=presentation_id,
+        points=presentation.participation_points,
+        date=datetime.now(),
+        user_control=current_user.username,
+        is_participation=True
+    )
+    inserted = PointService.insert(point)
+    return inserted    

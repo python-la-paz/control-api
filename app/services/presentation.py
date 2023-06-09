@@ -42,6 +42,11 @@ class PresentationService:
     def get_all(cls) -> list[PresentationInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [PresentationInDB(**item) for item in items]
+    
+    @classmethod
+    def get_all_talks(cls) -> list[PresentationInDB]:
+        items = cls.TABLE.find({"disabled": False, "kind": "talk"})
+        return [PresentationInDB(**item) for item in items]
 
     @classmethod
     def update_presentation(
