@@ -29,6 +29,7 @@ async def register(
     email: str,
     given_name: str = "",
     family_name: str = "",
+    current_user: Optional[dict] = Depends(get_current_username_admin),
 ):
     user = UserService.get_user(username)
     if user is not None:
