@@ -3,9 +3,12 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
+from app.models.control import ControlInDB
 from app.models.point import Point, PointInDB
 
 from app.models.user import UserInDB
+from app.services.control import ControlService
+from app.services.location import LocationService
 from app.services.participant import ParticipantService
 from app.services.point import PointService
 from app.services.presentation import PresentationService
@@ -78,13 +81,31 @@ async def redeem_point(
         return HTMLResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="Presentation not found"
         )
-
     # participant enable to location
     if presentation.location not in participant.locations:
         return HTMLResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content="Participant not enable to this presentation",
         )
+    # actual checkin location
+    in_and_outs = ControlService.count_in_and_outs(participant_control_code, presentation.location)
+    if in_and_outs <= 0:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant not checkin in this presentation",
+        )
+    # if is workshop make checkout
+    if presentation.kind == "workshop":
+        control = ControlInDB(
+            participant_control_code=participant_control_code,
+            location=presentation.location,
+            location_name="AUTO: "+presentation.name,
+            control="out",
+            date=datetime.now(),
+            user_control=current_user.username,
+        )
+        control.username_insert = current_user.username
+        inserted = ControlService.insert(control)
 
     # already change points in this presentation
     points = PointService.get_by_participant_and_presentation(

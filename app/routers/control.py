@@ -46,10 +46,11 @@ async def check(
         )
 
     # count check_in
-    ins = ControlService.count_checks(participant_control_code, location_id, "in")
-    outs = ControlService.count_checks(participant_control_code, location_id, "out")
+    # ins = ControlService.count_checks(participant_control_code, location_id, "in")
+    # outs = ControlService.count_checks(participant_control_code, location_id, "out")
+    in_and_outs = ControlService.count_in_and_outs(participant_control_code, location_id)
 
-    if ins == outs:
+    if in_and_outs == 0:
         if check:
             control = ControlInDB(
                 participant_control_code=participant_control_code,
@@ -67,7 +68,7 @@ async def check(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content="Check in first before check out",
             )
-    elif ins > outs:
+    elif in_and_outs > 0:
         if check:
             return HTMLResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,

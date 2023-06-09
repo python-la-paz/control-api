@@ -43,3 +43,34 @@ class ControlService:
                 "disabled": False,
             }
         )
+
+    @classmethod
+    def count_in_and_outs(
+        cls, participant_control_code: str, location: PyObjectId
+    ) -> int | None:
+    # 1: current in
+    # 0: empty
+    # -1: current out
+        query = [
+            {
+                "$match": {
+                    "disabled": False,
+                    "participant_control_code": participant_control_code,
+                    "location": location,
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "count_in_outs": {
+                        "$sum": {"$cond": [{"$eq": ["$control", "in"]}, 1, -1]}
+                    },
+                }
+            },
+        ]
+        items = cls.TABLE.aggregate(query)
+        result = [dict(**item) for item in items]
+        if result != []:
+            return result[0]["count_in_outs"]
+        else:
+            return None
