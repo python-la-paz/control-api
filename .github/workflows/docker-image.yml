@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_TAG: ${{ github.sha }}
+  DOCKER_IMAGE: ${{ vars.DOCKER_IMAGE }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,4 +32,4 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{secrets.DOCKER_IMAGE}}:${{env.IMAGE_TAG}},${{secrets.DOCKER_IMAGE}}:latest
+          tags: ${{env.DOCKER_IMAGE}}:${{env.IMAGE_TAG}},${{env.DOCKER_IMAGE}}:latest
