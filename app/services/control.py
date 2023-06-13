@@ -47,7 +47,7 @@ class ControlService:
     @classmethod
     def count_in_and_outs(
         cls, participant_control_code: str, location: PyObjectId
-    ) -> int | None:
+    ) -> int:
     # 1: current in
     # 0: empty
     # -1: current out
@@ -73,4 +73,4 @@ class ControlService:
         if result != []:
             return result[0]["count_in_outs"]
         else:
-            return None
+            return 0
