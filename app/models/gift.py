@@ -11,6 +11,7 @@ class Gift(Base):
     product: PyObjectId = None
     product_name: Optional[str] = None
     points: int = 0
+    multiple: bool = False
 
 
 class GiftInDB(Gift):

@@ -10,6 +10,9 @@ class Product(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     name: str = ""
     description: str = ""
+    able_to_buy: bool = False
+    price: float = 0.0
+    currency: str = ""
 
 
 class ProductInDB(Product):

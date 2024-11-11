@@ -1,5 +1,7 @@
+import csv
+from datetime import datetime
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Response, UploadFile, status
 from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
 from app.models.participant import Participant, ParticipantInDB
@@ -119,3 +121,53 @@ async def get_participant_ci(
             content="Multiple Participants with same ci found",
         )
     return find
+
+#import file csv with participants
+@router.post("/import")
+async def upload_file(file: UploadFile):
+    # Check if the uploaded file is a CSV
+    if file.filename.endswith('.csv'):
+        # Read the CSV file and print the content of the cells
+        csv_data = file.file.read().decode("utf-8")
+        reader = csv.reader(csv_data.splitlines())
+        list_participants = []
+        for row in reader:
+            #split row 12 using ;
+            row_12  = row[12].split(";")
+            row_13  = row[13].split(";")
+            # print (row_12,row_13)
+            location_id = []
+            for i in range(len(row_12)):
+                if row_12[i] != "":
+                    id = PyObjectId(row_12[i])
+                    location_id.append(id)
+            # print(location_id)
+            combos_id = []
+            for i in range(len(row_13)):
+                if row_13[i] != "":
+                    id = PyObjectId(row_13[i])
+                    combos_id.append(id)
+            # print(combos_id)
+            list_participants.append(ParticipantInDB(
+                mail=row[0],
+                name=row[1],
+                birthday=datetime.strptime(row[2], "%d/%m/%Y" ),
+                gender=row[3],
+                ci=row[4],
+                profession=row[5],
+                work_place=row[6],
+                residence_place=row[7],
+                photo=row[8],
+                phone=row[9],
+                t_shirt_size=row[10],
+                food_restrictions=row[11],
+                locations=location_id,
+                combos=combos_id,
+            ))
+        ids = ParticipantService.insert_many(list_participants)
+        print(ids)
+
+        return {"message": "File uploaded and data printed successfully."}
+    
+    else:
+        return {"error": "Only CSV files are supported."} 

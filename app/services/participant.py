@@ -193,3 +193,17 @@ class ParticipantService:
             return ParticipantInDB(**updated)
         else:
             return None
+
+    @classmethod
+    def insert_many(cls, items: list[ParticipantInDB]) -> list[PyObjectId]:
+        for item in items:
+            if hasattr(item, "id"):
+                delattr(item, "id")
+            if hasattr(item, "locations_items"):
+                delattr(item, "locations_items")
+            if hasattr(item, "combos_items"):
+                delattr(item, "combos_items")
+            item.date_insert = datetime.utcnow()
+            item.date_update = item.date_insert
+        inserted = cls.TABLE.insert_many([item.dict(by_alias=True) for item in items])
+        return inserted.inserted_ids

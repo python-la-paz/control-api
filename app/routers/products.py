@@ -71,3 +71,11 @@ async def get_all_product(
 ):
     finds = ProductService.get_all()
     return finds
+
+
+@router.get("/enable-to-buy", response_model=List[Product])
+async def get_all_enable_to_buy_product(
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+):
+    finds = ProductService.get_all_enable_to_buy()
+    return finds

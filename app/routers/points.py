@@ -95,17 +95,17 @@ async def redeem_point(
             content="Participant not checkin in this presentation",
         )
     # if is workshop make checkout
-    if presentation.kind == "workshop":
-        control = ControlInDB(
-            participant_control_code=participant_control_code,
-            location=presentation.location,
-            location_name="AUTO: "+presentation.name,
-            control="out",
-            date=datetime.now(),
-            user_control=current_user.username,
-        )
-        control.username_insert = current_user.username
-        inserted = ControlService.insert(control)
+    # if presentation.kind == "workshop":
+    #     control = ControlInDB(
+    #         participant_control_code=participant_control_code,
+    #         location=presentation.location,
+    #         location_name="AUTO: "+presentation.name,
+    #         control="out",
+    #         date=datetime.now(),
+    #         user_control=current_user.username,
+    #     )
+    #     control.username_insert = current_user.username
+    #     inserted = ControlService.insert(control)
 
     # already change points in this presentation
     points = PointService.get_by_participant_and_presentation(
