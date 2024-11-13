@@ -3,6 +3,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
+from app.core.roles import Roles
 from app.models.control import ControlInDB
 from app.models.point import Point, PointInDB
 
@@ -69,6 +70,10 @@ async def redeem_point(
     presentation_id: PyObjectId,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
+    if Roles.CHECKER not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
     # search participant
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
@@ -82,11 +87,11 @@ async def redeem_point(
             status_code=status.HTTP_404_NOT_FOUND, content="Presentation not found"
         )
     # participant enable to location
-    if presentation.location not in participant.locations:
-        return HTMLResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content="Participant not enable to this presentation",
-        )
+    # if presentation.location not in participant.locations:
+    #     return HTMLResponse(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         content="Participant not enable to this presentation",
+    #     )
     # actual checkin location
     in_and_outs = ControlService.count_in_and_outs(participant_control_code, presentation.location)
     if in_and_outs <= 0:
@@ -138,7 +143,10 @@ async def redeem_point_participation(
     presentation_id: PyObjectId,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
-    # search participant
+    if Roles.CHECKER not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(
@@ -157,11 +165,11 @@ async def redeem_point_participation(
             content="Participation only for talks",
         )
     # participant enable to location
-    if presentation.location not in participant.locations:
-        return HTMLResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content="Participant not enable to this presentation",
-        )
+    # if presentation.location not in participant.locations:
+    #     return HTMLResponse(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         content="Participant not enable to this presentation",
+    #     )
     # actual checkin location
     in_and_outs = ControlService.count_in_and_outs(participant_control_code, presentation.location)
     if in_and_outs <= 0:

@@ -3,6 +3,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
+from app.core.roles import Roles
 from app.models.gift import Gift, GiftInDB, RedeemGift, RedeemGiftInDB
 
 from app.models.user import UserInDB
@@ -88,7 +89,10 @@ async def redeem_point(
     gift_id: PyObjectId,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
-    # search participant
+    if Roles.SWAG not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(

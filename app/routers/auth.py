@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Response, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -159,3 +159,8 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     return current_user
+@router.get("/users/me/roles", response_model=List[str])
+async def read_users_me_roles(
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    return current_user.roles

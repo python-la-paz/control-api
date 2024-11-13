@@ -1,16 +1,18 @@
+import json
+import requests
 import csv
 from datetime import datetime
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, Response, UploadFile, status
 from fastapi.responses import HTMLResponse
-from app.auth.auth import get_current_active_user
+from app.auth.auth import get_current_active_user, get_current_username_admin
 from app.models.participant import Participant, ParticipantInDB
 
 from app.models.user import UserInDB
 from app.services.participant import ParticipantService
 from app.utils.mongo_validator import PyObjectId
-
-
+from app.core.roles import Roles
+from app.core.configuration import APP_USERS_API_URL, APP_USERS_API_TOKEN
 router = APIRouter()
 
 
@@ -65,6 +67,10 @@ async def register_participant(
     control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
+    if Roles.ACCREDITATION not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
     find = ParticipantService.get_by_ci(ci)
     if find is None:
         return HTMLResponse(
@@ -93,7 +99,42 @@ async def get_participant_control_code(
     participant_control_code: str,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
+    if Roles.INFORMATION not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
     find = ParticipantService.get_by_control_code_full(participant_control_code)
+    if find is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    if find is False:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Multiple participant with same control code found",
+        )
+    return find
+
+@router.get("/user/code/ci", response_model=Participant)
+async def get_participant_control_code(
+    ci: str,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+):
+    if Roles.INFORMATION not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
+    find = ParticipantService.get_by_control_ci(ci)
+    if not find:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    if not find.control_code:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant not registered",
+        )
+    find = ParticipantService.get_by_control_code_full(find.control_code)
     if find is None:
         return HTMLResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
@@ -112,9 +153,35 @@ async def get_participant_ci(
 ):
     find = ParticipantService.get_by_control_ci(ci)
     if find is None:
-        return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
-        )
+        headers = {
+            "Authorization" : APP_USERS_API_TOKEN,
+            "Content-Type": "application/json"
+        }
+        response = requests.post(APP_USERS_API_URL + f'/{ci}', headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            parti = ParticipantInDB(
+                mail=data['email'],
+                name=data['given_name'] + ' ' + data['family_name'],
+                #'birthday': '2003-06-17T04:00:00'
+                birthday=datetime.strptime(data['birthday'].split('T')[0], "%Y-%m-%d"),
+                gender=data["gender"],
+                ci=data["dni"],
+                profession=data["profession"],
+                work_place=data["place_profession"],
+                residence_place=data["residence"],
+                photo=data["picture"],
+                phone=data["phone"],
+                t_shirt_size="",
+                food_restrictions="",
+            )
+            parti.id = PyObjectId(data['_id'])
+            ids = ParticipantService.insert_many([parti],delete_id=False)
+            find = ParticipantService.get_by_control_ci(ci)
+        else:
+            return HTMLResponse(
+                status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            )
     if find is False:
         return HTMLResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -124,7 +191,7 @@ async def get_participant_ci(
 
 #import file csv with participants
 @router.post("/import")
-async def upload_file(file: UploadFile):
+async def upload_file(file: UploadFile, current_user: Optional[dict] = Depends(get_current_username_admin)):
     # Check if the uploaded file is a CSV
     if file.filename.endswith('.csv'):
         # Read the CSV file and print the content of the cells
@@ -171,3 +238,41 @@ async def upload_file(file: UploadFile):
     
     else:
         return {"error": "Only CSV files are supported."} 
+    
+@router.post("/migration")
+async def migrate(current_user: Optional[dict] = Depends(get_current_username_admin)):
+    #Consume API
+    headers = {
+        'Authorization': APP_USERS_API_TOKEN,
+        'Content-Type': 'application/json'
+    }
+    actual_ids = ParticipantService.get_all_ids()
+    payload = json.dumps(actual_ids)
+    response = requests.post(APP_USERS_API_URL, headers=headers , data=payload)
+    data = response.json()
+    participants = data['participants']
+    list_participants = []
+    for participant in participants:
+        parti = ParticipantInDB(
+            id=PyObjectId(participant['_id']),
+            mail=participant['email'],
+            name=participant['given_name'] + ' ' + participant['family_name'],
+            #'birthday': '2003-06-17T04:00:00'
+            birthday=datetime.strptime(participant['birthday'].split('T')[0], "%Y-%m-%d"),
+            gender=participant['gender'],
+            ci=participant['dni'],
+            profession=participant['profession'],
+            work_place=participant['place_profession'],
+            residence_place=participant['residence'],
+            photo=participant['picture'],
+            phone=participant['phone'],
+            t_shirt_size="",
+            food_restrictions="",
+        )
+        parti.id = PyObjectId(participant['_id'])
+        list_participants.append(parti)
+    if list_participants:
+        ids = ParticipantService.insert_many(list_participants,delete_id=False)
+        return True
+    else:
+        return False

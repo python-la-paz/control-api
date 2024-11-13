@@ -46,6 +46,12 @@ class ParticipantService:
     def get_all(cls) -> list[ParticipantInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [ParticipantInDB(**item) for item in items]
+    
+    @classmethod
+    def get_all_ids(cls) -> list[str]:
+        """Get array of ids"""
+        items = cls.TABLE.find({"disabled": False})
+        return [str(item["_id"]) for item in items]
 
     @classmethod
     def get_by_control_code(cls, control_code: str) -> ParticipantInDB | None | bool:
@@ -195,9 +201,9 @@ class ParticipantService:
             return None
 
     @classmethod
-    def insert_many(cls, items: list[ParticipantInDB]) -> list[PyObjectId]:
+    def insert_many(cls, items: list[ParticipantInDB], delete_id=True) -> list[PyObjectId]:
         for item in items:
-            if hasattr(item, "id"):
+            if hasattr(item, "id") and delete_id:
                 delattr(item, "id")
             if hasattr(item, "locations_items"):
                 delattr(item, "locations_items")
