@@ -106,3 +106,18 @@ class RedeemGiftService:
             {"participant_control_code": participant_control_code, "disabled": False}
         )
         return [RedeemGiftInDB(**item) for item in items]
+    
+    @classmethod
+    def get_redeem_gift_by_participant(
+        cls, participant_control_code: str, gift: PyObjectId
+    ) -> List[RedeemGiftInDB] | None:
+        items = cls.TABLE.find(
+            {
+                "participant_control_code": participant_control_code,
+                "gift": gift,
+                "disabled": False,
+            }
+        )
+        if items is not None:
+            return [RedeemGiftInDB(**item) for item in items]
+        return None

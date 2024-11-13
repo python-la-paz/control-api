@@ -17,6 +17,7 @@ from app.routers import (
     presentations,
     products,
     buy,
+    special_point,
 )
 from fastapi.responses import JSONResponse
 
@@ -84,3 +85,4 @@ app.include_router(control.router, prefix="/api/v1/control", tags=["Control"])
 app.include_router(points.router, prefix="/api/v1/points", tags=["Points"])
 app.include_router(meals.router, prefix="/api/v1/meals", tags=["Meals"])
 app.include_router(buy.router, prefix="/api/v1/buy", tags=["Buy"])
+app.include_router(special_point.router, prefix="/api/v1/special_point", tags=["Special Point"])

@@ -104,6 +104,13 @@ async def redeem_point(
         return HTMLResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="Gift not found"
         )
+    if gift.multiple:
+        already = RedeemGiftService.get_redeem_gift_by_participant(participant_control_code, gift_id)
+        if already is not None:
+            return HTMLResponse(
+                status_code=status.HTTP_400_BAD_REQUEST, content="Gift already redeemed"
+            )
+        
     # check if participant has enough points
     if participant.points < gift.points:
         return HTMLResponse(
