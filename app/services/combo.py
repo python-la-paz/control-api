@@ -187,3 +187,12 @@ class RedeemComboService:
             {"participant_control_code": participant_control_code, "disabled": False}
         )
         return [RedeemComboInDB(**item) for item in items]
+
+    @classmethod
+    def exist_participant_control_code(cls, participant_control_code: str) -> bool:
+        items = cls.TABLE.count_documents(
+            {"participant_control_code": participant_control_code, "disabled": False}
+        )
+        if items > 0:
+            return True
+        return False

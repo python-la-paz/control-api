@@ -36,3 +36,16 @@ class ParticipantInDB(Participant):
     date_update: Optional[datetime] = None
     username_insert: Optional[str] = None
     username_update: Optional[str] = None
+
+
+class RevokeRegistration(Base):
+    control_code: str = ""
+    ci: str = ""
+    participant_id = PyObjectId
+
+class RevokeRegistrationInDB(RevokeRegistration):
+    disabled: Optional[bool] = False
+    date_insert: Optional[datetime] = None
+    date_update: Optional[datetime] = None
+    username_insert: Optional[str] = None
+    username_update: Optional[str] = None

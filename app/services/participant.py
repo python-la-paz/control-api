@@ -8,7 +8,7 @@ from app.utils.mongo_validator import PyObjectId
 
 class ParticipantService:
     TABLE = db.participants
-
+    REVOKE_TABLE = db.revoke
     @classmethod
     def insert(cls, item: ParticipantInDB) -> ParticipantInDB:
         if hasattr(item, "id"):
@@ -213,3 +213,33 @@ class ParticipantService:
             item.date_update = item.date_insert
         inserted = cls.TABLE.insert_many([item.dict(by_alias=True) for item in items])
         return inserted.inserted_ids
+    
+    @classmethod
+    def finish_unregistration(cls, id: PyObjectId, user:str) -> ParticipantInDB | None:
+        updated = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {
+                "$set": {
+                    "control_code": "",
+                    "registration": False,
+                    "date_update": datetime.utcnow(),
+                    "username_update": user
+                }
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        if updated is not None:
+            return ParticipantInDB(**updated)
+        else:
+            return None
+        
+    @classmethod
+    def save_revoke(cls, id: PyObjectId, control_code: str, ci: str, user:str) -> bool:
+        cls.REVOKE_TABLE.insert_one({
+            "participant_id": id,
+            "control_code": control_code,
+            "ci": ci,
+            "date_insert": datetime.utcnow(),
+            "username_insert": user
+        })
+        return True

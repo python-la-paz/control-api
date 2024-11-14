@@ -14,7 +14,7 @@ class GiftService:
     def insert(cls, item: GiftInDB) -> GiftInDB:
         if hasattr(item, "id"):
             delattr(item, "id")
-        if hasattr(item, "product_name"):
+        if hasattr(item, "product_name"): # Deprecated 
             delattr(item, "product_name")
         item.date_insert = datetime.utcnow()
         item.date_update = item.date_insert
@@ -106,11 +106,11 @@ class RedeemGiftService:
             {"participant_control_code": participant_control_code, "disabled": False}
         )
         return [RedeemGiftInDB(**item) for item in items]
-    
+
     @classmethod
     def get_redeem_gift_by_participant(
         cls, participant_control_code: str, gift: PyObjectId
-    ) -> List[RedeemGiftInDB] | None:
+    ) -> List[RedeemGiftInDB] :
         items = cls.TABLE.find(
             {
                 "participant_control_code": participant_control_code,
@@ -120,4 +120,13 @@ class RedeemGiftService:
         )
         if items is not None:
             return [RedeemGiftInDB(**item) for item in items]
-        return None
+        return []
+
+    @classmethod
+    def exist_participant_control_code(cls, participant_control_code: str) -> bool:
+        items = cls.TABLE.count_documents(
+            {"participant_control_code": participant_control_code, "disabled": False}
+        )
+        if items > 0:
+            return True
+        return False

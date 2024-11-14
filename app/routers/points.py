@@ -97,7 +97,7 @@ async def redeem_point(
     if in_and_outs <= 0:
         return HTMLResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content="Participant not checkin in this presentation",
+            content="Participant not checkin in this location",
         )
     # if is workshop make checkout
     # if presentation.kind == "workshop":

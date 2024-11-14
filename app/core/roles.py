@@ -9,7 +9,8 @@ class Roles:
     SWAG = "swag"
     INFORMATION = "information"
     SPECIAL_POINT = "special_point"
+    REVOCATION = "revocation"
 
     @staticmethod
     def get_roles() -> List[str]:
-        return [Roles.ACCREDITATION, Roles.CHECKER, Roles.LAUNCH, Roles.SWAG, Roles.INFORMATION, Roles.SPECIAL_POINT]
+        return [Roles.ACCREDITATION, Roles.CHECKER, Roles.LAUNCH, Roles.SWAG, Roles.INFORMATION, Roles.SPECIAL_POINT, Roles.REVOCATION]

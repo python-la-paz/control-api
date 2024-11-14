@@ -10,7 +10,7 @@ class SpecialPoint(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     points : int = 0
     description: str = ""
-    multiple: bool = False
+    limit: int = 0
 
 class SpecialPointInDB(SpecialPoint):
     disabled: Optional[bool] = False

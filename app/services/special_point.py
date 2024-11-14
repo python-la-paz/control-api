@@ -69,3 +69,12 @@ class SpecialPointService:
         if item is not None:
             return [SpecialPointRedeemInDB(**i) for i in item]
         return item
+
+    @classmethod
+    def exist_participant_control_code(cls, participant_control_code: str) -> bool:
+        items = cls.TABLE_REDEEM.count_documents(
+            {"participant_control_code": participant_control_code, "disabled": False}
+        )
+        if items > 0:
+            return True
+        return False

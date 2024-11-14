@@ -9,7 +9,14 @@ from app.auth.auth import get_current_active_user, get_current_username_admin
 from app.models.participant import Participant, ParticipantInDB
 
 from app.models.user import UserInDB
+from app.services.buy import BuyService
+from app.services.combo import ComboService, RedeemComboService
+from app.services.control import ControlService
+from app.services.gift import RedeemGiftService
+from app.services.meal import RedeemMealService
 from app.services.participant import ParticipantService
+from app.services.point import PointService
+from app.services.special_point import SpecialPointService
 from app.utils.mongo_validator import PyObjectId
 from app.core.roles import Roles
 from app.core.configuration import APP_USERS_API_URL, APP_USERS_API_TOKEN
@@ -91,6 +98,72 @@ async def register_participant(
         )
 
     finish = ParticipantService.finish_registration(find.id, control_code)
+    return finish
+
+@router.post("/unregistration", response_model=Participant)
+async def unregister_participant(
+    control_code: str,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+):
+    if Roles.REVOCATION not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
+    find = ParticipantService.get_by_control_code(control_code)
+    if find is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    # search activity check in and checkouts
+    points = PointService.exist_participant_control_code(control_code)
+    if points:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has points",
+        )
+    buys = BuyService.exist_participant_control_code(control_code)
+    if buys:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has buys",
+        )
+    combos = RedeemComboService.exist_participant_control_code(control_code)
+    if combos:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has combos",
+        )
+    control = ControlService.exist_participant_control_code(control_code)
+    if control:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has controls",
+        )
+    gifts = RedeemGiftService.exist_participant_control_code(control_code)
+    if gifts:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has redeemed gifts",
+        )
+    meals = RedeemMealService.exist_participant_control_code(control_code)
+    if meals:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has redeemed meals",
+        )
+    special = SpecialPointService.exist_participant_control_code(control_code)
+    if special:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Participant has special points",
+        )
+    
+    finish = ParticipantService.finish_unregistration(find.id, current_user.username)
+    if finish is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    save_revoke = ParticipantService.save_revoke(finish.id, control_code, find.ci, current_user.username)
     return finish
 
 
