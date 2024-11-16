@@ -67,6 +67,21 @@ async def get_all_participant(
     finds = ParticipantService.get_all()
     return finds
 
+@router.put("/{id}", response_model=Participant)
+async def update_participant(
+    id: PyObjectId,
+    participant: Participant,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+):
+    find = ParticipantService.get(id)
+    if find is None:
+        return HTMLResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+        )
+    participantDB = ParticipantInDB(**participant.dict())
+    participantDB.username_update = current_user.username
+    updated = ParticipantService.update(id, participantDB)
+    return updated
 
 @router.post("/registration", response_model=Participant)
 async def register_participant(

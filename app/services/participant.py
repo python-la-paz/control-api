@@ -34,6 +34,22 @@ class ParticipantService:
             return ParticipantInDB(**deleted)
         else:
             return None
+        
+    @classmethod
+    def update(cls, id: PyObjectId, item: ParticipantInDB) -> ParticipantInDB | None:
+        if hasattr(item, "id"):
+            delattr(item, "id")
+        item.date_update = datetime.utcnow()
+        
+        updated = cls.TABLE.find_one_and_update(
+            {"_id": id, "disabled": False},
+            {"$set": item.dict(by_alias=True)},
+            return_document=ReturnDocument.AFTER,
+        )
+        if updated is not None:
+            return ParticipantInDB(**updated)
+        else:
+            return None
 
     @classmethod
     def get(cls, id: PyObjectId) -> ParticipantInDB | None:
