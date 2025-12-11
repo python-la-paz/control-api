@@ -61,7 +61,7 @@ class ProductService:
     
     @classmethod
     def get_enable_to_buy(cls, id: PyObjectId) -> ProductInDB | None:
-        item = cls.TABLE.find_one({"_id": id, "disabled": False, "enable_to_buy": True})
+        item = cls.TABLE.find_one({"_id": id, "disabled": False, "able_to_buy": True})
         if item is not None:
             return ProductInDB(**item)
         return item
