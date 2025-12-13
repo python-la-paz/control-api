@@ -3,6 +3,7 @@ from typing import Annotated, List, Union
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from app.auth.auth import get_current_active_user
+from app.core.roles import Roles
 from app.models.combo import (
     Combo,
     ComboInDB,
@@ -122,6 +123,10 @@ async def redeem_combo(
     redeem: RedeemComboRequest,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
+    if Roles.COMBO not in current_user.roles:
+        return HTMLResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+        )
     participant = ParticipantService.get_by_control_code(
         redeem.participant_control_code
     )

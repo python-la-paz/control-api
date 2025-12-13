@@ -52,6 +52,7 @@ class PointService:
                 "participant_control_code": participant_control_code,
                 "presentation": presentation_id,
                 "disabled": False,
+                "is_participation": False,
             }
         )
         if item is not None:
