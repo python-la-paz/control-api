@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
+
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 
@@ -14,6 +15,7 @@ class Point(Base):
     date: datetime = None
     user_control: str = ""
     is_participation: bool = False
+    checkpoint_link: Optional[PyObjectId] = None
 
 
 class PointInDB(Point):

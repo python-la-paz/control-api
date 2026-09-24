@@ -1,13 +1,13 @@
 from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
+
 from app.auth.auth import get_current_active_user
 from app.models.presentation import Presentation, PresentationInDB
-
 from app.models.user import UserInDB
 from app.services.presentation import PresentationService
 from app.utils.mongo_validator import PyObjectId
-
 
 router = APIRouter()
 
@@ -26,12 +26,14 @@ async def insert_presentation(
 
 @router.delete("/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_presentation(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = PresentationService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Presentation not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Presentation not found",
         )
     PresentationService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -39,26 +41,29 @@ async def delete_presentation(
 
 @router.get("/{id}", response_model=Presentation)
 async def get_presentation(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = PresentationService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Presentation not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Presentation not found",
         )
     return find
 
 
 @router.get("", response_model=List[Presentation])
 async def get_all_presentation(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = PresentationService.get_all()
     return finds
 
+
 @router.get("/get/talks", response_model=List[Presentation])
 async def get_all_presentation_talks(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = PresentationService.get_all_talks()
     return finds
@@ -73,7 +78,8 @@ async def update_presentation(
     find = PresentationService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Presentation not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Presentation not found",
         )
     updated = PresentationService.update_presentation(id, points)
     return updated

@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
@@ -47,15 +48,13 @@ class RedeemMealService:
     @classmethod
     def get_by_participant(cls, participant_control_code: str) -> List[RedeemMealInDB]:
         items = cls.TABLE.find(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
         return [RedeemMealInDB(**item) for item in items]
 
     @classmethod
     def exist_participant_control_code(cls, participant_control_code: str) -> bool:
         items = cls.TABLE.count_documents(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
-        if items > 0:
-            return True
-        return False
+        return items > 0

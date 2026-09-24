@@ -1,15 +1,20 @@
 from datetime import datetime
 from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
-from app.auth.auth import get_current_active_user, get_current_username_admin
+
+from app.auth.auth import get_current_active_user
 from app.core.roles import Roles
-from app.models.special_point import SpecialPoint, SpecialPointInDB, SpecialPointRedeemInDB
+from app.models.special_point import (
+    SpecialPoint,
+    SpecialPointInDB,
+    SpecialPointRedeemInDB,
+)
 from app.models.user import UserInDB
 from app.services.participant import ParticipantService
 from app.services.special_point import SpecialPointService
 from app.utils.mongo_validator import PyObjectId
-
 
 router = APIRouter()
 
@@ -17,7 +22,8 @@ router = APIRouter()
 # insert, delete, get, get_all
 @router.post("", response_model=SpecialPoint)
 async def insert_special_point(
-    point: SpecialPoint, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    point: SpecialPoint,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     pointDB = SpecialPointInDB(**point.dict())
     pointDB.username_insert = current_user.username
@@ -27,12 +33,14 @@ async def insert_special_point(
 
 @router.delete("/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_special_point(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = SpecialPointService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Special Point not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Special Point not found",
         )
     SpecialPointService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -40,22 +48,25 @@ async def delete_special_point(
 
 @router.get("/{id}", response_model=SpecialPoint)
 async def get_special_point(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = SpecialPointService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Point not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Point not found",
         )
     return find
 
 
 @router.get("", response_model=List[SpecialPoint])
 async def get_all_special_point(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = SpecialPointService.get_all()
     return finds
+
 
 @router.get("/redeem/special", response_model=SpecialPoint)
 async def insert_special_point_redeem(
@@ -65,27 +76,34 @@ async def insert_special_point_redeem(
 ):
     if Roles.SPECIAL_POINT not in current_user.roles:
         return HTMLResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED, content="Unauthorized"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="Unauthorized",
         )
     point = SpecialPointService.get(special_point)
     if point is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Special Point not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Special Point not found",
         )
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
-    
+
     if point.limit > 0:
-        already_redeemed = SpecialPointService.get_redeems(participant_control_code, special_point)
+        already_redeemed = SpecialPointService.get_redeems(
+            participant_control_code,
+            special_point,
+        )
         size_redeemed = len(already_redeemed)
         if size_redeemed >= point.limit:
             return HTMLResponse(
-                status_code=status.HTTP_400_BAD_REQUEST, content="Limit reached"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content="Limit reached",
             )
-    
+
     redeem = SpecialPointRedeemInDB(
         special_point=special_point,
         points=point.points,

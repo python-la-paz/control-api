@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Literal, Optional
 
 from pydantic import Field
+
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 

@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import List
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
-from app.models.gift import GiftInDB, RedeemGiftInDB
+from app.models.gift import GiftInDB, RedeemGiftInDB, SelfServiceGift
 from app.utils.mongo_validator import PyObjectId
 
 
@@ -14,7 +15,7 @@ class GiftService:
     def insert(cls, item: GiftInDB) -> GiftInDB:
         if hasattr(item, "id"):
             delattr(item, "id")
-        if hasattr(item, "product_name"): # Deprecated 
+        if hasattr(item, "product_name"):  # Deprecated
             delattr(item, "product_name")
         item.date_insert = datetime.utcnow()
         item.date_update = item.date_insert
@@ -55,7 +56,7 @@ class GiftService:
                     "localField": "product",
                     "foreignField": "_id",
                     "as": "product",
-                }
+                },
             },
             {"$unwind": "$product"},
             {"$match": {"disabled": False}},
@@ -66,11 +67,49 @@ class GiftService:
                     "points": 1,
                     "product": "$product._id",
                     "product_name": "$product.name",
-                }
+                },
             },
         ]
         items = cls.TABLE.aggregate(query)
         return [GiftInDB(**item) for item in items]
+
+    @classmethod
+    def get_all_virtual(cls) -> List[SelfServiceGift]:
+        query = [
+            {"$match": {"disabled": False}},
+            {
+                "$lookup": {
+                    "from": "products",
+                    "localField": "product",
+                    "foreignField": "_id",
+                    "as": "product",
+                },
+            },
+            {"$unwind": "$product"},
+            {
+                "$match": {
+                    "product.disabled": False,
+                    "product.kind": {"$in": ["digital_file", "discount_code"]},
+                    "$or": [
+                        {"product.stock": None},
+                        {"product.stock": {"$gt": 0}},
+                    ],
+                },
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "points": 1,
+                    "multiple": 1,
+                    "name": "$product.name",
+                    "description": "$product.description",
+                    "kind": "$product.kind",
+                    "stock": "$product.stock",
+                },
+            },
+        ]
+        items = cls.TABLE.aggregate(query)
+        return [SelfServiceGift(**item) for item in items]
 
 
 class RedeemGiftService:
@@ -100,23 +139,26 @@ class RedeemGiftService:
 
     @classmethod
     def get_all_by_participant(
-        cls, participant_control_code: str
+        cls,
+        participant_control_code: str,
     ) -> List[RedeemGiftInDB]:
         items = cls.TABLE.find(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
         return [RedeemGiftInDB(**item) for item in items]
 
     @classmethod
     def get_redeem_gift_by_participant(
-        cls, participant_control_code: str, gift: PyObjectId
-    ) -> List[RedeemGiftInDB] :
+        cls,
+        participant_control_code: str,
+        gift: PyObjectId,
+    ) -> List[RedeemGiftInDB]:
         items = cls.TABLE.find(
             {
                 "participant_control_code": participant_control_code,
                 "gift": gift,
                 "disabled": False,
-            }
+            },
         )
         if items is not None:
             return [RedeemGiftInDB(**item) for item in items]
@@ -125,8 +167,6 @@ class RedeemGiftService:
     @classmethod
     def exist_participant_control_code(cls, participant_control_code: str) -> bool:
         items = cls.TABLE.count_documents(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
-        if items > 0:
-            return True
-        return False
+        return items > 0

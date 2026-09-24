@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
+
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 
@@ -28,6 +29,20 @@ class RedeemGift(Base):
     gift: PyObjectId = None
     date: datetime = None
     user_control: str = ""
+    product: Optional[PyObjectId] = None
+    discount_code: Optional[str] = None
+    download_url: Optional[str] = None
+    multiple: bool = False
+
+
+class SelfServiceGift(Base):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    name: str = ""
+    description: str = ""
+    kind: str = ""
+    points: int = 0
+    multiple: bool = False
+    stock: Optional[int] = None
 
 
 class RedeemGiftInDB(RedeemGift):

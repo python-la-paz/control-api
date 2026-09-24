@@ -1,0 +1,50 @@
+{
+	"name": "Control API",
+	"build": {
+		"context": "..",
+		"dockerfile": "../Dockerfile"
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/common-utils:2": {}
+	},
+	"postCreateCommand": "git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename} && pre-commit install",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh"
+			},
+			"extensions": [
+				"alefragnani.Bookmarks",
+				"ms-vscode-remote.remote-containers",
+				"hediet.vscode-drawio",
+				"usernamehw.errorlens",
+				"johnpapa.vscode-peacock",
+				"ms-vscode-remote.remote-ssh",
+				"ms-vscode.remote-server",
+				"ms-vscode-remote.vscode-remote-extensionpack",
+				"ms-vscode.remote-explorer",
+				"njpwerner.autodocstring",
+				"ms-python.autopep8",
+				"ms-python.black-formatter",
+				"streetsidesoftware.code-spell-checker",
+				"vivaxy.vscode-conventional-commits",
+				"mhutchie.git-graph",
+				"eamodio.gitlens",
+				"oderwat.indent-rainbow",
+				"ryu1kn.partial-diff",
+				"ms-python.vscode-pylance",
+				"ms-python.python",
+				"ms-python.debugpy",
+				"mechatroner.rainbow-csv",
+				"streetsidesoftware.code-spell-checker-spanish",
+				"jackiotyu.git-worktree-manager",
+				"aaron-bond.better-comments",
+				"rangav.vscode-thunder-client",
+				"christian-kohler.path-intellisense",
+                "charliermarsh.ruff",
+				"mongodb.mongodb-vscode"
+			]
+		}
+	}
+}

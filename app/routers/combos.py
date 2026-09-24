@@ -1,7 +1,10 @@
+import logging
 from datetime import datetime
-from typing import Annotated, List, Union
+from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
+
 from app.auth.auth import get_current_active_user
 from app.core.roles import Roles
 from app.models.combo import (
@@ -11,20 +14,20 @@ from app.models.combo import (
     RedeemComboInDB,
     RedeemComboRequest,
 )
-
 from app.models.user import UserInDB
 from app.services.combo import ComboService, RedeemComboService
 from app.services.participant import ParticipantService
 from app.utils.mongo_validator import PyObjectId
 
-
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # insert, delete, get, get_all
 @router.post("", response_model=Combo)
 async def insert_combo(
-    combo: Combo, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    combo: Combo,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     comboDB = ComboInDB(**combo.dict())
     comboDB.username_insert = current_user.username
@@ -34,12 +37,14 @@ async def insert_combo(
 
 @router.delete("/id/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_combo(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = ComboService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Combo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Combo not found",
         )
     ComboService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -47,12 +52,14 @@ async def delete_combo(
 
 @router.put("", response_model=Combo)
 async def update_combo(
-    combo: Combo, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    combo: Combo,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = ComboService.get(combo.id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Combo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Combo not found",
         )
     comboDB = ComboInDB(**combo.dict())
     comboDB.username_update = current_user.username
@@ -62,33 +69,38 @@ async def update_combo(
 
 @router.get("/id/{id}", response_model=Combo)
 async def get_combo(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = ComboService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Combo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Combo not found",
         )
     return find
 
 
 @router.get("", response_model=List[Combo])
 async def get_all_combo(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = ComboService.get_all()
     return finds
 
+
 @router.get("/products", response_model=List[Combo])
 async def get_all_combo_and_products(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = ComboService.get_all_and_products()
     return finds
+
+
 @router.post("/products", response_model=List[Combo])
 async def get_all_combo_and_products_by_ids(
     combos: List[PyObjectId],
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = ComboService.get_all_and_products_by_ids(combos)
     return finds
@@ -103,7 +115,8 @@ async def get_redeemed_combo(
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
     finds = RedeemComboService.search_by_participant(participant_control_code)
     return finds
@@ -125,20 +138,23 @@ async def redeem_combo(
 ):
     if Roles.COMBO not in current_user.roles:
         return HTMLResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="User not authorized",
         )
     participant = ParticipantService.get_by_control_code(
-        redeem.participant_control_code
+        redeem.participant_control_code,
     )
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
     # exist combo
     combo = ComboService.get(redeem.combo_id)
     if combo is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Combo not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Combo not found",
         )
     # exist combo in participant
     if redeem.combo_id not in participant.combos:
@@ -156,7 +172,7 @@ async def redeem_combo(
     product_already_redeemed = []
     product_to_redeem = []
     products = list(dict.fromkeys(redeem.products_id))
-    print(products)
+    logger.info("Products to redeem: %s", products)
     for product_id in combo.products:
         if product_id not in combo.products:
             product_not_exist.append(product_id)

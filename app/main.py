@@ -1,25 +1,30 @@
-from app.auth.auth import get_current_username_admin
-from app.core import configuration
 from typing import Optional
+
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from app.auth.auth import get_current_username_admin
+from app.core import configuration
+from app.core.database import ensure_indexes
 from app.routers import (
     auth,
+    buy,
+    combos,
     control,
     gifts,
     locations,
     meals,
     participants,
-    combos,
     points,
+    presentation_checkpoint_links,
     presentations,
     products,
-    buy,
+    self_service,
     special_point,
 )
-from fastapi.responses import JSONResponse
 
 TITLE = configuration.APP_TITLE
 VERSION = configuration.APP_VERSION
@@ -38,14 +43,23 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+def startup():
+    ensure_indexes()
+
+
 @app.get("/api/v1")
 async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/api/v1/docs", tags=["Documentation"])  # Tag it as "documentation" for our docs
+@app.get(
+    "/api/v1/docs",
+    tags=["Documentation"],
+)  # Tag it as "documentation" for our docs
 async def get_documentation(
-    request: Request, user: Optional[dict] = Depends(get_current_username_admin)
+    request: Request,
+    user: Optional[dict] = Depends(get_current_username_admin),
 ):  # This dependency protects our endpoint!
     response = get_swagger_ui_html(
         openapi_url="/api/v1/openapi.json",
@@ -56,17 +70,22 @@ async def get_documentation(
 
 @app.get("/api/v1/openapi.json", tags=["Documentation"])
 async def get_open_api_endpoint(
-    request: Request, user: Optional[dict] = Depends(get_current_username_admin)
+    request: Request,
+    user: Optional[dict] = Depends(get_current_username_admin),
 ):  # This dependency protects our endpoint!
     response = JSONResponse(
-        get_openapi(title=TITLE, version=VERSION, routes=app.routes)
+        get_openapi(title=TITLE, version=VERSION, routes=app.routes),
     )
     return response
 
 
-@app.get("/api/v1/redoc", tags=["Documentation"])  # Tag it as "documentation" for our docs
+@app.get(
+    "/api/v1/redoc",
+    tags=["Documentation"],
+)  # Tag it as "documentation" for our docs
 async def redoc_html(
-    request: Request, user: Optional[dict] = Depends(get_current_username_admin)
+    request: Request,
+    user: Optional[dict] = Depends(get_current_username_admin),
 ):  # This dependency protects our endpoint!
     response = get_redoc_html(openapi_url="/api/v1/openapi.json", title="Documentation")
     return response
@@ -75,9 +94,20 @@ async def redoc_html(
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Security"])
 app.include_router(locations.router, prefix="/api/v1/location", tags=["Location"])
 app.include_router(
-    presentations.router, prefix="/api/v1/presentation", tags=["Presentations"]
+    presentations.router,
+    prefix="/api/v1/presentation",
+    tags=["Presentations"],
 )
-app.include_router(participants.router, prefix="/api/v1/participant", tags=["Participant"])
+app.include_router(
+    presentation_checkpoint_links.router,
+    prefix="/api/v1/presentation-checkpoint-link",
+    tags=["Presentation Checkpoint Links"],
+)
+app.include_router(
+    participants.router,
+    prefix="/api/v1/participant",
+    tags=["Participant"],
+)
 app.include_router(products.router, prefix="/api/v1/product", tags=["Product"])
 app.include_router(combos.router, prefix="/api/v1/combo", tags=["Combo"])
 app.include_router(gifts.router, prefix="/api/v1/gift", tags=["Gift"])
@@ -85,4 +115,13 @@ app.include_router(control.router, prefix="/api/v1/control", tags=["Control"])
 app.include_router(points.router, prefix="/api/v1/points", tags=["Points"])
 app.include_router(meals.router, prefix="/api/v1/meals", tags=["Meals"])
 app.include_router(buy.router, prefix="/api/v1/buy", tags=["Buy"])
-app.include_router(special_point.router, prefix="/api/v1/special_point", tags=["Special Point"])
+app.include_router(
+    special_point.router,
+    prefix="/api/v1/special_point",
+    tags=["Special Point"],
+)
+app.include_router(
+    self_service.router,
+    prefix="/api/v1/self-service",
+    tags=["Self Service"],
+)

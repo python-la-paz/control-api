@@ -1,16 +1,16 @@
 from datetime import datetime
 from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import HTMLResponse
+
 from app.auth.auth import get_current_active_user
 from app.core.roles import Roles
 from app.models.meal import RedeemMeal, RedeemMealInDB
-
 from app.models.user import UserInDB
 from app.services.meal import RedeemMealService
 from app.services.participant import ParticipantService
 from app.utils.mongo_validator import PyObjectId
-
 
 router = APIRouter()
 
@@ -28,12 +28,14 @@ async def insert_redeem_meal(
 
 @router.delete("/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_redeem_meal(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = RedeemMealService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="RedeemMeal not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="RedeemMeal not found",
         )
     RedeemMealService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -41,19 +43,21 @@ async def delete_redeem_meal(
 
 @router.get("/{id}", response_model=RedeemMeal)
 async def get_redeem_meal(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = RedeemMealService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="RedeemMeal not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="RedeemMeal not found",
         )
     return find
 
 
 @router.get("/redeem/user", response_model=List[RedeemMeal])
 async def get_all_redeem_meal(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = RedeemMealService.get_all()
     return finds
@@ -68,7 +72,8 @@ async def get_all_meal_by_participant(
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
     finds = RedeemMealService.get_by_participant(participant_control_code)
     return finds
@@ -81,12 +86,14 @@ async def redeem_meal(
 ):
     if Roles.LAUNCH not in current_user.roles:
         return HTMLResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="User not authorized",
         )
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
     finds = RedeemMealService.get_by_participant(participant_control_code)
     if len(finds) > 0:
