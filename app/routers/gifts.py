@@ -9,7 +9,7 @@ from app.models.gift import Gift, GiftInDB, RedeemGift
 from app.models.user import UserInDB
 from app.services.gift import GiftService, RedeemGiftService
 from app.services.participant import ParticipantService
-from app.services.redemption import RedemptionError, redeem_gift, send_redeem_email
+from app.services.redemption import RedemptionError, redeem_reward, send_redeem_email
 from app.utils.mongo_validator import PyObjectId
 
 router = APIRouter()
@@ -108,7 +108,7 @@ async def redeem_point(
             content="Participant not found",
         )
     try:
-        redeem, product = redeem_gift(participant, gift_id, current_user.username)
+        redeem, product = redeem_reward(participant, gift_id, current_user.username)
     except RedemptionError as error:
         return HTMLResponse(status_code=error.status_code, content=error.message)
     background_tasks.add_task(

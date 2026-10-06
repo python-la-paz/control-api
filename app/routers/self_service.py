@@ -23,10 +23,11 @@ from app.services.participant import ParticipantService
 from app.services.point import PointService
 from app.services.presentation import PresentationService
 from app.services.presentation_checkpoint_link import PresentationCheckpointLinkService
+from app.services.product import ProductService
 from app.services.redemption import (
     RedemptionError,
-    redeem_gift,
-    redeem_virtual_meal,
+    redeem_reward,
+    redeem_virtual_gift,
     send_redeem_email,
 )
 from app.utils.control_code_generator import generate_name
@@ -210,6 +211,27 @@ async def self_service_participation_register(
     )
 
 
+@router.post("/points", response_model=SelfServiceResult)
+async def self_service_points(points_request: SelfServiceCheckRequest):
+    control_code = points_request.control_code
+    participant = ParticipantService.get_by_control_code(control_code)
+    if participant is None:
+        return HTMLResponse(
+            content="Participant not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    if not isinstance(participant, ParticipantInDB):
+        return HTMLResponse(
+            content="Participants with same control code found",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    return SelfServiceResult(
+        control_code=control_code,
+        message="Current participant points",
+        points=participant.points,
+    )
+
+
 def _get_self_service_participant(
     control_code: str,
     ci: str,
@@ -224,13 +246,13 @@ def _get_self_service_participant(
     return participant
 
 
-@router.get("/gifts", response_model=list[SelfServiceGift])
-async def self_service_gifts():
+@router.get("/rewards", response_model=list[SelfServiceGift])
+async def self_service_rewards():
     return GiftService.get_all_virtual()
 
 
-@router.post("/redeem/gift", response_model=SelfServiceRedeem)
-async def self_service_redeem_gift(
+@router.post("/redeem/reward", response_model=SelfServiceRedeem)
+async def self_service_redeem_reward(
     redeem_request: SelfServiceRedeemRequest,
     background_tasks: BackgroundTasks,
 ):
@@ -241,7 +263,7 @@ async def self_service_redeem_gift(
     if isinstance(participant, HTMLResponse):
         return participant
     try:
-        redeem, product = redeem_gift(
+        redeem, product = redeem_reward(
             participant,
             gift_id,
             "self_service",
@@ -261,15 +283,28 @@ async def self_service_redeem_gift(
     )
     return SelfServiceRedeem(
         control_code=control_code,
-        message="Gift redeemed",
+        message="Reward redeemed",
         product_name=product.name,
         discount_code=redeem.discount_code,
         download_url=redeem.download_url,
     )
 
 
-@router.post("/redeem/meal", response_model=SelfServiceRedeem)
-async def self_service_redeem_meal(
+@router.get("/redeem/gift", response_model=SelfServiceResult)
+async def self_service_check_redeem_gift():
+    if ProductService.get_virtual_meal() is None:
+        return HTMLResponse(
+            content="Virtual Gift not available or out of stock",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    return SelfServiceResult(
+        control_code="",
+        message="Virtual Gift available",
+    )
+
+
+@router.post("/redeem/gift", response_model=SelfServiceRedeem)
+async def self_service_redeem_gift(
     redeem_request: SelfServiceRedeemRequest,
     background_tasks: BackgroundTasks,
 ):
@@ -279,7 +314,7 @@ async def self_service_redeem_meal(
     if isinstance(participant, HTMLResponse):
         return participant
     try:
-        redeem, product = redeem_virtual_meal(participant, "self_service")
+        redeem, product = redeem_virtual_gift(participant, "self_service")
     except RedemptionError as error:
         return HTMLResponse(
             content=error.message,
@@ -294,7 +329,7 @@ async def self_service_redeem_meal(
     )
     return SelfServiceRedeem(
         control_code=control_code,
-        message="Meal redeemed",
+        message="Gift redeemed",
         product_name=product.name,
         discount_code=redeem.discount_code,
         download_url=redeem.download_url,

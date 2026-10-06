@@ -47,7 +47,7 @@ def _release(product: ProductInDB, discount_code: str | None) -> None:
         ProductService.release_stock(product.id)
 
 
-def redeem_gift(
+def redeem_reward(
     participant: ParticipantInDB,
     gift_id: PyObjectId,
     user_control: str,
@@ -55,12 +55,12 @@ def redeem_gift(
 ) -> tuple[RedeemGiftInDB, ProductInDB]:
     gift = GiftService.get(gift_id)
     if gift is None:
-        raise RedemptionError("Gift not found", status.HTTP_404_NOT_FOUND)
+        raise RedemptionError("Reward not found", status.HTTP_404_NOT_FOUND)
     if not gift.multiple and RedeemGiftService.get_redeem_gift_by_participant(
         participant.control_code,
         gift_id,
     ):
-        raise RedemptionError("Gift already redeemed")
+        raise RedemptionError("Reward already redeemed")
     if participant.points < gift.points:
         raise RedemptionError(
             f"Not enough points, participant has {participant.points} points",
@@ -69,7 +69,7 @@ def redeem_gift(
     if product is None:
         raise RedemptionError("Product not found", status.HTTP_404_NOT_FOUND)
     if virtual and product.kind == "physical":
-        raise RedemptionError("Gift not available for virtual redemption")
+        raise RedemptionError("Reward not available for virtual redemption")
 
     discount_code = _deliver(product, participant.control_code)
     redeem = RedeemGiftInDB(
@@ -87,17 +87,17 @@ def redeem_gift(
         inserted = RedeemGiftService.insert(redeem)
     except DuplicateKeyError:
         _release(product, discount_code)
-        raise RedemptionError("Gift already redeemed")
+        raise RedemptionError("Reward already redeemed")
     ParticipantService.subtract_points(participant.id, gift.points)
     return inserted, product
 
 
-def redeem_virtual_meal(
+def redeem_virtual_gift(
     participant: ParticipantInDB,
     user_control: str,
 ) -> tuple[RedeemMealInDB, ProductInDB]:
     if RedeemMealService.get_by_participant(participant.control_code):
-        raise RedemptionError("Participant already redeemed meal")
+        raise RedemptionError("Participant already redeemed gift")
     product = ProductService.get_virtual_meal()
     if product is None:
         raise RedemptionError("Virtual meal not available", status.HTTP_404_NOT_FOUND)
@@ -116,7 +116,7 @@ def redeem_virtual_meal(
         return RedeemMealService.insert(redeem), product
     except DuplicateKeyError:
         _release(product, discount_code)
-        raise RedemptionError("Participant already redeemed meal")
+        raise RedemptionError("Participant already redeemed gift")
 
 
 def send_redeem_email(
