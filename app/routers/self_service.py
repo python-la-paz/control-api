@@ -173,17 +173,43 @@ async def self_service_participation_register(
 
     user_control = "self_service"
     in_and_outs = ControlService.count_in_and_outs(control_code, presentation.location)
+    if in_and_outs > 0:
+        current_check_in = ControlService.get_latest_check_in(
+            control_code,
+            presentation.location,
+        )
+        if (
+            current_check_in is not None
+            and current_check_in.presentation != presentation.id
+        ):
+            check_out = ControlInDB(
+                participant_control_code=control_code,
+                location=presentation.location,
+                location_name=location.name,
+                presentation=current_check_in.presentation,
+                control="out",
+                date=datetime.now(),
+                user_control=user_control,
+            )
+            check_out.username_insert = user_control
+            ControlService.insert(check_out)
+            in_and_outs -= 1
+
     if in_and_outs <= 0:
-        # Virtual attendance: auto check-in, unless checked in elsewhere
         if ControlService.count_in_and_outs_global(control_code) > 0:
-            return SelfServiceResult(
-                control_code=control_code,
-                message="Current check in a location",
+            return HTMLResponse(
+                content=(
+                    "You are still checked in at another location. "
+                    "Register your check-out there before joining this presentation. "
+                    "This checkpoint was not registered and no points were awarded."
+                ),
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
         check_in = ControlInDB(
             participant_control_code=control_code,
             location=presentation.location,
             location_name=location.name,
+            presentation=presentation.id,
             control="in",
             date=datetime.now(),
             user_control=user_control,
@@ -208,6 +234,7 @@ async def self_service_participation_register(
             participant_control_code=control_code,
             location=presentation.location,
             location_name=location.name,
+            presentation=presentation.id,
             control="out",
             date=datetime.now(),
             user_control=user_control,

@@ -12,6 +12,7 @@ class Control(Base):
     participant_control_code: str = ""
     location: PyObjectId = None
     location_name: str = ""
+    presentation: Optional[PyObjectId] = None
     control: Literal["in", "out"]
     date: datetime = None
     user_control: str = ""

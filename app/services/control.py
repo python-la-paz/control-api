@@ -31,6 +31,25 @@ class ControlService:
         return [ControlInDB(**item) for item in items]
 
     @classmethod
+    def get_latest_check_in(
+        cls,
+        participant_control_code: str,
+        location: PyObjectId,
+    ) -> ControlInDB | None:
+        item = cls.TABLE.find_one(
+            {
+                "participant_control_code": participant_control_code,
+                "location": location,
+                "control": "in",
+                "disabled": False,
+            },
+            sort=[("date_insert", -1), ("_id", -1)],
+        )
+        if item is not None:
+            return ControlInDB(**item)
+        return None
+
+    @classmethod
     def count_checks(
         cls,
         participant_control_code: str,
