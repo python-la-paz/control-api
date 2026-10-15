@@ -39,9 +39,14 @@ logger = logging.getLogger(__name__)
 
 @router.post("/registration", response_model=SelfServiceParticipant)
 async def self_service_registration(register: SelfServiceRegisterRequest):
-    ci = register.ci
+    ci = register.ci.strip()
     birthday = register.birthday
     birthday_datetime = datetime(birthday.year, birthday.month, birthday.day)
+    if not ci:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="CI is required",
+        )
     find = ParticipantService.get_by_ci_and_birthday(ci=ci, birthday=birthday_datetime)
     if find is None:
         return HTMLResponse(
@@ -72,7 +77,7 @@ async def self_service_registration(register: SelfServiceRegisterRequest):
 
 @router.get("/check/{code}", response_model=SelfServiceResult)
 async def self_service_participation(code: str):
-
+    code = code.strip()
     find = PresentationCheckpointLinkService.get_by_code(code)
     if find is None:
         return HTMLResponse(
@@ -106,7 +111,13 @@ async def self_service_participation_register(
     code: str,
     checks: SelfServiceCheckRequest,
 ):
-    control_code = checks.control_code
+    control_code = checks.control_code.strip()
+    code = code.strip()
+    if not control_code:
+        return HTMLResponse(
+            "Control code is required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     find = PresentationCheckpointLinkService.get_by_code(code)
     if find is None:
         return HTMLResponse(
@@ -213,7 +224,12 @@ async def self_service_participation_register(
 
 @router.post("/points", response_model=SelfServiceResult)
 async def self_service_points(points_request: SelfServiceCheckRequest):
-    control_code = points_request.control_code
+    control_code = points_request.control_code.strip()
+    if not control_code:
+        return HTMLResponse(
+            content="Control code is required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     participant = ParticipantService.get_by_control_code(control_code)
     if participant is None:
         return HTMLResponse(
@@ -256,9 +272,19 @@ async def self_service_redeem_reward(
     redeem_request: SelfServiceRedeemRequest,
     background_tasks: BackgroundTasks,
 ):
-    control_code = redeem_request.control_code
-    ci = redeem_request.ci
+    control_code = redeem_request.control_code.strip()
+    ci = redeem_request.ci.strip()
     gift_id = redeem_request.gift
+    if not control_code:
+        return HTMLResponse(
+            content="Control code is required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    if not ci:
+        return HTMLResponse(
+            content="CI is required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     participant = _get_self_service_participant(control_code, ci)
     if isinstance(participant, HTMLResponse):
         return participant
@@ -308,8 +334,18 @@ async def self_service_redeem_gift(
     redeem_request: SelfServiceRedeemRequest,
     background_tasks: BackgroundTasks,
 ):
-    control_code = redeem_request.control_code
-    ci = redeem_request.ci
+    control_code = redeem_request.control_code.strip()
+    ci = redeem_request.ci.strip()
+    if not control_code:
+        return HTMLResponse(
+            content="Control code is required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    if not ci:
+        return HTMLResponse(
+            content="CI is required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     participant = _get_self_service_participant(control_code, ci)
     if isinstance(participant, HTMLResponse):
         return participant

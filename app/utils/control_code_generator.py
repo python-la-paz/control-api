@@ -152,11 +152,11 @@ def generate_name() -> str:
     """
     Genera un identificador al estilo Docker:
 
-        adjetivo-nombre-digito
+        adjetivo-nombre
 
     Ejemplo:
 
-        valiente-illimani-7
+        valiente-illimani
     """
 
     left = random.choice(LEFT)

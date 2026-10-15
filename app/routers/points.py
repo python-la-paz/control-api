@@ -133,6 +133,12 @@ async def redeem_point_participation(
     presentation_id: PyObjectId,
     current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
+    participant_control_code = participant_control_code.strip()
+    if not participant_control_code:
+        return HTMLResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="Control code is required",
+        )
     if Roles.CHECKER not in current_user.roles:
         return HTMLResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
