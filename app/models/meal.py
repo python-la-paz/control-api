@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
+
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
 
@@ -11,6 +12,9 @@ class RedeemMeal(Base):
     participant_control_code: str = ""
     date: datetime = None
     user_control: str = ""
+    product: Optional[PyObjectId] = None
+    discount_code: Optional[str] = None
+    download_url: Optional[str] = None
 
 
 class RedeemMealInDB(RedeemMeal):

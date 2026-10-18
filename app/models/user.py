@@ -1,10 +1,12 @@
 from datetime import datetime
 from typing import List, Optional
-from bson import ObjectId
-from pydantic import BaseModel, Field
+
+from pydantic import Field
+
+from app.core.roles import Roles
 from app.models.base import Base
 from app.utils.mongo_validator import PyObjectId
-from app.core.roles import Roles
+
 
 class User(Base):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
@@ -15,7 +17,7 @@ class User(Base):
     disabled: Optional[bool] = False
     admin: Optional[bool] = False
     editor: Optional[bool] = False
-    roles: List[str] = [Roles.INFORMATION] 
+    roles: List[str] = [Roles.INFORMATION]
 
 
 class UserInDB(User):

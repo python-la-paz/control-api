@@ -1,16 +1,15 @@
-from typing import Annotated
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from datetime import datetime, timedelta
 from typing import Annotated
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials, OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+from app.core import configuration
 from app.models.token import TokenData
 from app.models.user import UserInDB
-from passlib.context import CryptContext
-from jose import JWTError, jwt
-from app.core import configuration
 from app.services.user import UserService
-from fastapi.security import OAuth2PasswordBearer
 
 SECRET_KEY = configuration.APP_SECRET_KEY
 ALGORITHM = configuration.ALGORITHM
@@ -19,7 +18,7 @@ security = HTTPBasic()
 
 
 def get_current_username_admin(
-    credentials: Annotated[HTTPBasicCredentials, Depends(security)]
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
 ):
     user = UserService.get_user_active(credentials.username)
     if user is None:
@@ -84,7 +83,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 async def get_current_active_user(
-    current_user: Annotated[UserInDB, Depends(get_current_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_user)],
 ):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")

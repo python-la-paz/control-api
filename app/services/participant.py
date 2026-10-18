@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import date, datetime
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
@@ -9,6 +10,7 @@ from app.utils.mongo_validator import PyObjectId
 class ParticipantService:
     TABLE = db.participants
     REVOKE_TABLE = db.revoke
+
     @classmethod
     def insert(cls, item: ParticipantInDB) -> ParticipantInDB:
         if hasattr(item, "id"):
@@ -34,13 +36,13 @@ class ParticipantService:
             return ParticipantInDB(**deleted)
         else:
             return None
-        
+
     @classmethod
     def update(cls, id: PyObjectId, item: ParticipantInDB) -> ParticipantInDB | None:
         if hasattr(item, "id"):
             delattr(item, "id")
         item.date_update = datetime.utcnow()
-        
+
         updated = cls.TABLE.find_one_and_update(
             {"_id": id, "disabled": False},
             {"$set": item.dict(by_alias=True)},
@@ -62,7 +64,7 @@ class ParticipantService:
     def get_all(cls) -> list[ParticipantInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [ParticipantInDB(**item) for item in items]
-    
+
     @classmethod
     def get_all_ids(cls) -> list[str]:
         """Get array of ids"""
@@ -85,7 +87,8 @@ class ParticipantService:
 
     @classmethod
     def get_by_control_code_full(
-        cls, control_code: str
+        cls,
+        control_code: str,
     ) -> ParticipantInDB | None | bool:
         query = [
             {
@@ -94,7 +97,7 @@ class ParticipantService:
                     "localField": "locations",
                     "foreignField": "_id",
                     "as": "locations_info",
-                }
+                },
             },
             {
                 "$lookup": {
@@ -102,7 +105,7 @@ class ParticipantService:
                     "localField": "combos",
                     "foreignField": "_id",
                     "as": "combos_info",
-                }
+                },
             },
             {"$match": {"disabled": False, "control_code": control_code}},
             {
@@ -123,16 +126,16 @@ class ParticipantService:
                             "input": "$locations_info",
                             "as": "locations",
                             "in": "$$locations.name",
-                        }
+                        },
                     },
                     "combos_items": {
                         "$map": {
                             "input": "$combos_info",
                             "as": "combos",
                             "in": "$$combos.name",
-                        }
+                        },
                     },
-                }
+                },
             },
         ]
         items = cls.TABLE.aggregate(query)
@@ -192,13 +195,13 @@ class ParticipantService:
     @classmethod
     def exist_control_code(cls, control_code: str) -> bool:
         item = cls.TABLE.find_one({"control_code": control_code, "disabled": False})
-        if item is not None:
-            return True
-        return False
+        return item is not None
 
     @classmethod
     def finish_registration(
-        cls, id: PyObjectId, control_code: str
+        cls,
+        id: PyObjectId,
+        control_code: str,
     ) -> ParticipantInDB | None:
         updated = cls.TABLE.find_one_and_update(
             {"_id": id, "disabled": False},
@@ -207,7 +210,8 @@ class ParticipantService:
                     "control_code": control_code,
                     "registration": True,
                     "date_update": datetime.utcnow(),
-                }
+                    "date_registration": datetime.utcnow(),
+                },
             },
             return_document=ReturnDocument.AFTER,
         )
@@ -217,7 +221,11 @@ class ParticipantService:
             return None
 
     @classmethod
-    def insert_many(cls, items: list[ParticipantInDB], delete_id=True) -> list[PyObjectId]:
+    def insert_many(
+        cls,
+        items: list[ParticipantInDB],
+        delete_id=True,
+    ) -> list[PyObjectId]:
         for item in items:
             if hasattr(item, "id") and delete_id:
                 delattr(item, "id")
@@ -229,9 +237,9 @@ class ParticipantService:
             item.date_update = item.date_insert
         inserted = cls.TABLE.insert_many([item.dict(by_alias=True) for item in items])
         return inserted.inserted_ids
-    
+
     @classmethod
-    def finish_unregistration(cls, id: PyObjectId, user:str) -> ParticipantInDB | None:
+    def finish_unregistration(cls, id: PyObjectId, user: str) -> ParticipantInDB | None:
         updated = cls.TABLE.find_one_and_update(
             {"_id": id, "disabled": False},
             {
@@ -239,8 +247,8 @@ class ParticipantService:
                     "control_code": "",
                     "registration": False,
                     "date_update": datetime.utcnow(),
-                    "username_update": user
-                }
+                    "username_update": user,
+                },
             },
             return_document=ReturnDocument.AFTER,
         )
@@ -248,14 +256,30 @@ class ParticipantService:
             return ParticipantInDB(**updated)
         else:
             return None
-        
+
     @classmethod
-    def save_revoke(cls, id: PyObjectId, control_code: str, ci: str, user:str) -> bool:
-        cls.REVOKE_TABLE.insert_one({
-            "participant_id": id,
-            "control_code": control_code,
-            "ci": ci,
-            "date_insert": datetime.utcnow(),
-            "username_insert": user
-        })
+    def save_revoke(cls, id: PyObjectId, control_code: str, ci: str, user: str) -> bool:
+        cls.REVOKE_TABLE.insert_one(
+            {
+                "participant_id": id,
+                "control_code": control_code,
+                "ci": ci,
+                "date_insert": datetime.utcnow(),
+                "username_insert": user,
+            },
+        )
         return True
+
+    @classmethod
+    def get_by_ci_and_birthday(cls, ci: str, birthday: date) -> ParticipantInDB | None:
+        item = cls.TABLE.find_one(
+            {
+                "disabled": False,
+                "ci": ci,
+                "birthday": birthday,
+            },
+        )
+        if item is not None:
+            return ParticipantInDB(**item)
+        else:
+            return None

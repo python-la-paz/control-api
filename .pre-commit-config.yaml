@@ -1,0 +1,89 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+repos:
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
+      - id: black
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.8
+    hooks:
+      - id: ruff-check
+        name: Ruff isort
+        args: [--select=I, --fix]
+      - id: ruff-check
+        name: Ruff unused imports
+        args: [--select=F401, --fix]
+      - id: ruff-check
+        name: Ruff f-string without interpolation
+        args: [--select=F541, --fix]
+      - id: ruff-check
+        name: Ruff not in test comparison 
+        args: [--select=E713, --fix]
+      - id: ruff-check
+        name: Ruff test object identity comparison 
+        args: [--select=E714, --fix]
+      - id: ruff-check
+        name: Ruff do not compare types, use isinstance 
+        args: [--select=E721, --fix]
+      - id: ruff-check
+        name: Ruff all pycodestyle Errors
+        args: ["--select=E"]
+      - id: ruff-check
+        name: Ruff all pyflakes Errors
+        args: ["--select=F"]
+      - id: ruff-check
+        name: Ruff trailing missing comma
+        args: ["--select=COM812", --fix]
+      - id: ruff-check
+        name: Ruff TODO formats
+        args: ["--select=TD"]
+      - id: ruff-check
+        name: Ruff Bugbear
+        args: ["--select=B006"]
+      - id: ruff-check
+        name: Ruff pylint conventions
+        args: ["--select=PLC"]
+      - id: ruff-check
+        name: Ruff commented code
+        args: ["--select=ERA"]
+      - id: ruff-check
+        name: Ruff flake gettext
+        args: ["--select=INT"]
+      - id: ruff-check
+        name: Ruff logging format
+        args: ["--select=LOG"]
+      - id: ruff-check
+        name: Ruff pytest format
+        args: ["--select=PT"]
+      - id: ruff-check
+        name: Ruff implicit string concat
+        args: ["--select=ISC"]
+      - id: ruff-check
+        name: Ruff loggin percent format
+        args: ["--select=G"]
+      - id: ruff-check
+        name: Ruff executable permissions
+        args: ["--select=EXE"]
+      - id: ruff-check
+        name: Ruff type checking
+        args: ["--select=TC"]
+      - id: ruff-check
+        name: Ruff idiomatic code
+        args: ["--select=PIE"]
+      - id: ruff-check
+        name: Ruff print
+        args: ["--select=T"]
+      - id: ruff-check
+        name: Ruff Needless pass
+        args: ["--select=SIM"]

@@ -1,12 +1,10 @@
+import logging
 from datetime import timedelta
 from typing import Annotated, List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Response, status, APIRouter
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
-from app.models.token import Token
-from app.models.user import User, UserInDB
-from app.services.user import UserService
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.security import OAuth2PasswordRequestForm
+
 from app.auth.auth import (
     create_access_token,
     get_current_active_user,
@@ -15,10 +13,14 @@ from app.auth.auth import (
     verify_password,
 )
 from app.core import configuration
+from app.models.token import Token
+from app.models.user import User, UserInDB
+from app.services.user import UserService
 
 ACCESS_TOKEN_EXPIRE_MINUTES = configuration.APP_ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/register", response_model=User)
@@ -36,7 +38,8 @@ async def register(
         raise HTTPException(status_code=400, detail="Username already exists")
     if password != confirm_password:
         raise HTTPException(
-            status_code=400, detail="Password and confirm password not match"
+            status_code=400,
+            detail="Password and confirm password not match",
         )
     hashed_password = get_password_hash(password)
     user = UserInDB(
@@ -59,14 +62,15 @@ async def update_user_admin(
     user = UserService.get_user_active(username)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
         )
     updated = UserService.set_admin(user.username, admin)
     return updated
 
 
 @router.patch("/users/editor", response_model=User)
-async def update_user_admin(
+async def update_user_admin_editor(
     username: str,
     editor: bool,
     current_user: Optional[dict] = Depends(get_current_username_admin),
@@ -74,7 +78,8 @@ async def update_user_admin(
     user = UserService.get_user_active(username)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
         )
     updated = UserService.set_editor(user.username, editor)
     return updated
@@ -89,13 +94,15 @@ async def update_user_password_admin(
 ):
     if password != confirm_password:
         raise HTTPException(
-            status_code=400, detail="Password and confirm password not match"
+            status_code=400,
+            detail="Password and confirm password not match",
         )
 
     user = UserService.get_user_active(username)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
         )
 
     hashed_password = get_password_hash(password)
@@ -112,7 +119,8 @@ async def update_user_password(
 ):
     if password != confirm_password:
         raise HTTPException(
-            status_code=400, detail="Password and confirm password not match"
+            status_code=400,
+            detail="Password and confirm password not match",
         )
     if not verify_password(old_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect old password")
@@ -131,7 +139,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token, expires = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username},
+        expires_delta=access_token_expires,
     )
     return Token(
         access_token=access_token,
@@ -143,24 +152,29 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
 @router.delete("/users", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_user(
-    username: str, current_user: Optional[dict] = Depends(get_current_username_admin)
+    username: str,
+    current_user: Optional[dict] = Depends(get_current_username_admin),
 ):
     user = UserService.get_user_active(username)
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
         )
     deleted = UserService.delete_user(username)
+    logger.info("User deleted: %s", deleted)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/users/me", response_model=User)
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)]
+    current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     return current_user
+
+
 @router.get("/users/me/roles", response_model=List[str])
 async def read_users_me_roles(
-    current_user: Annotated[User, Depends(get_current_active_user)]
+    current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     return current_user.roles

@@ -12,14 +12,13 @@ from app.services.participant import ParticipantService
 from app.services.product import ProductService
 from app.utils.mongo_validator import PyObjectId
 
-
 router = APIRouter()
-
 
 
 @router.post("", response_model=BuyProduct)
 async def insert_buy(
-    buy: BuyProduct, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    buy: BuyProduct,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     buyDB = BuyProductInDB(**buy.dict())
     buyDB.username_insert = current_user.username
@@ -29,12 +28,14 @@ async def insert_buy(
 
 @router.delete("/id/{id}", responses={status.HTTP_204_NO_CONTENT: {"model": None}})
 async def delete_buy(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = BuyService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Buy not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Buy not found",
         )
     BuyService.delete(id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -42,19 +43,21 @@ async def delete_buy(
 
 @router.get("/id/{id}", response_model=BuyProduct)
 async def get_buy(
-    id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     find = BuyService.get(id)
     if find is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Buy not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Buy not found",
         )
     return find
 
 
 @router.get("", response_model=List[BuyProduct])
 async def get_all_buy(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = BuyService.get_all()
     return finds
@@ -62,28 +65,31 @@ async def get_all_buy(
 
 @router.get("/participant", response_model=List[BuyProduct])
 async def get_all_buy_by_participant_control_code(
-    participant_control_code: str, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    participant_control_code: str,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = BuyService.get_by_participant_control_code(participant_control_code)
     return finds
 
 
-
 @router.post("/participant", response_model=BuyProduct)
 async def insert_buy_by_participant_control_code(
     participant_control_code: str,
-    product_id: PyObjectId, current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    product_id: PyObjectId,
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     participant = ParticipantService.get(participant_control_code)
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
-    
+
     product = ProductService.get_enable_to_buy(product_id)
     if product is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Product not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Product not found",
         )
 
     buyDB = BuyProductInDB(

@@ -1,17 +1,17 @@
 from datetime import datetime
 from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import HTMLResponse
+
 from app.auth.auth import get_current_active_user
 from app.core.roles import Roles
 from app.models.control import Control, ControlInDB
-
 from app.models.user import UserInDB
 from app.services.control import ControlService
 from app.services.location import LocationService
 from app.services.participant import ParticipantService
 from app.utils.mongo_validator import PyObjectId
-
 
 router = APIRouter()
 
@@ -25,14 +25,16 @@ async def check(
 ):
     if Roles.CHECKER not in current_user.roles:
         return HTMLResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED, content="User not authorized"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="User not authorized",
         )
     participant = ParticipantService.get_by_control_code(participant_control_code)
     if participant is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Participant not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Participant not found",
         )
-    if participant == False:
+    if not participant:
         return HTMLResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content="Participants with same control code found",
@@ -41,19 +43,12 @@ async def check(
     location = LocationService.get(location_id)
     if location is None:
         return HTMLResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="Location not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="Location not found",
         )
-    # check if participant is enable to enter in location
-    # if location_id not in participant.locations:
-    #     return HTMLResponse(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         content="Participant is not enable to enter in this location",
-    #     )
-
-    # count check_in
-    # ins = ControlService.count_checks(participant_control_code, location_id, "in")
-    # outs = ControlService.count_checks(participant_control_code, location_id, "out")
-    count_in_and_outs_global = ControlService.count_in_and_outs_global(participant_control_code)
+    count_in_and_outs_global = ControlService.count_in_and_outs_global(
+        participant_control_code,
+    )
     if count_in_and_outs_global > 0 and check:
         return HTMLResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -64,7 +59,10 @@ async def check(
             status_code=status.HTTP_400_BAD_REQUEST,
             content="Current check out a location",
         )
-    in_and_outs = ControlService.count_in_and_outs(participant_control_code, location_id)
+    in_and_outs = ControlService.count_in_and_outs(
+        participant_control_code,
+        location_id,
+    )
 
     if in_and_outs == 0:
         if check:
@@ -111,7 +109,7 @@ async def check(
 
 @router.get("", response_model=List[Control])
 async def get_all_control(
-    current_user: Annotated[UserInDB, Depends(get_current_active_user)]
+    current_user: Annotated[UserInDB, Depends(get_current_active_user)],
 ):
     finds = ControlService.get_all()
     return finds

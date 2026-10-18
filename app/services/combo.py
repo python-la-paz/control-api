@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
@@ -78,7 +79,7 @@ class ComboService:
                     "localField": "products",
                     "foreignField": "_id",
                     "as": "products",
-                }
+                },
             },
             {"$match": {"disabled": False}},
             {
@@ -90,7 +91,7 @@ class ComboService:
                             "input": "$products",
                             "as": "product",
                             "in": "$$product._id",
-                        }
+                        },
                     },
                     "products_items": {
                         "$map": {
@@ -100,9 +101,9 @@ class ComboService:
                                 "_id": "$$product._id",
                                 "name": "$$product.name",
                             },
-                        }
+                        },
                     },
-                }
+                },
             },
         ]
         items = cls.TABLE.aggregate(query)
@@ -117,7 +118,7 @@ class ComboService:
                     "localField": "products",
                     "foreignField": "_id",
                     "as": "products",
-                }
+                },
             },
             {"$match": {"disabled": False, "_id": {"$in": combos}}},
             {
@@ -129,7 +130,7 @@ class ComboService:
                             "input": "$products",
                             "as": "product",
                             "in": "$$product._id",
-                        }
+                        },
                     },
                     "products_items": {
                         "$map": {
@@ -139,9 +140,9 @@ class ComboService:
                                 "_id": "$$product._id",
                                 "name": "$$product.name",
                             },
-                        }
+                        },
                     },
-                }
+                },
             },
         ]
         items = cls.TABLE.aggregate(query)
@@ -168,31 +169,32 @@ class RedeemComboService:
 
     @classmethod
     def search_by_participant_and_combo(
-        cls, participant_control_code: str, combo_id: PyObjectId
+        cls,
+        participant_control_code: str,
+        combo_id: PyObjectId,
     ) -> List[RedeemComboInDB]:
         items = cls.TABLE.find(
             {
                 "participant_control_code": participant_control_code,
                 "combo": combo_id,
                 "disabled": False,
-            }
+            },
         )
         return [RedeemComboInDB(**item) for item in items]
 
     @classmethod
     def search_by_participant(
-        cls, participant_control_code: str
+        cls,
+        participant_control_code: str,
     ) -> List[RedeemComboInDB]:
         items = cls.TABLE.find(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
         return [RedeemComboInDB(**item) for item in items]
 
     @classmethod
     def exist_participant_control_code(cls, participant_control_code: str) -> bool:
         items = cls.TABLE.count_documents(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
-        if items > 0:
-            return True
-        return False
+        return items > 0

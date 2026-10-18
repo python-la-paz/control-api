@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
@@ -42,7 +43,7 @@ class PresentationService:
     def get_all(cls) -> list[PresentationInDB]:
         items = cls.TABLE.find({"disabled": False})
         return [PresentationInDB(**item) for item in items]
-    
+
     @classmethod
     def get_all_talks(cls) -> list[PresentationInDB]:
         items = cls.TABLE.find({"disabled": False, "kind": "talk"})
@@ -50,7 +51,9 @@ class PresentationService:
 
     @classmethod
     def update_presentation(
-        cls, id: PyObjectId, points: int = 0
+        cls,
+        id: PyObjectId,
+        points: int = 0,
     ) -> PresentationInDB | None:
         item = cls.TABLE.find_one_and_update(
             {"_id": id, "disabled": False},

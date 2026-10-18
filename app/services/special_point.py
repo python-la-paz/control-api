@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
@@ -57,14 +58,16 @@ class SpecialPointService:
 
     @classmethod
     def get_redeems(
-        cls, participant_control_code: str, id: PyObjectId
+        cls,
+        participant_control_code: str,
+        id: PyObjectId,
     ) -> List[SpecialPointRedeemInDB] | None:
         item = cls.TABLE_REDEEM.find(
             {
                 "participant_control_code": participant_control_code,
                 "special_point": id,
                 "disabled": False,
-            }
+            },
         )
         if item is not None:
             return [SpecialPointRedeemInDB(**i) for i in item]
@@ -73,8 +76,6 @@ class SpecialPointService:
     @classmethod
     def exist_participant_control_code(cls, participant_control_code: str) -> bool:
         items = cls.TABLE_REDEEM.count_documents(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
-        if items > 0:
-            return True
-        return False
+        return items > 0

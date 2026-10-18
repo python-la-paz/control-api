@@ -1,5 +1,4 @@
 from datetime import datetime
-from pymongo.collection import ReturnDocument
 
 from app.core.database import db
 from app.models.control import ControlInDB
@@ -27,13 +26,35 @@ class ControlService:
     @classmethod
     def get_all_by_participant(cls, participant_control_code: str) -> list[ControlInDB]:
         items = cls.TABLE.find(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
         return [ControlInDB(**item) for item in items]
 
     @classmethod
+    def get_latest_check_in(
+        cls,
+        participant_control_code: str,
+        location: PyObjectId,
+    ) -> ControlInDB | None:
+        item = cls.TABLE.find_one(
+            {
+                "participant_control_code": participant_control_code,
+                "location": location,
+                "control": "in",
+                "disabled": False,
+            },
+            sort=[("date_insert", -1), ("_id", -1)],
+        )
+        if item is not None:
+            return ControlInDB(**item)
+        return None
+
+    @classmethod
     def count_checks(
-        cls, participant_control_code: str, location: PyObjectId, control: str
+        cls,
+        participant_control_code: str,
+        location: PyObjectId,
+        control: str,
     ) -> int:
         return cls.TABLE.count_documents(
             {
@@ -41,30 +62,28 @@ class ControlService:
                 "location": location,
                 "control": control,
                 "disabled": False,
-            }
+            },
         )
 
     @classmethod
-    def count_in_and_outs_global(
-        cls, participant_control_code: str
-    ) -> int:
-    # 1: current in
-    # 0: empty
-    # -1: current out
+    def count_in_and_outs_global(cls, participant_control_code: str) -> int:
+        # 1: current in
+        # 0: empty
+        # -1: current out
         query = [
             {
                 "$match": {
                     "disabled": False,
                     "participant_control_code": participant_control_code,
-                }
+                },
             },
             {
                 "$group": {
                     "_id": None,
                     "count_in_outs": {
-                        "$sum": {"$cond": [{"$eq": ["$control", "in"]}, 1, -1]}
+                        "$sum": {"$cond": [{"$eq": ["$control", "in"]}, 1, -1]},
                     },
-                }
+                },
             },
         ]
         items = cls.TABLE.aggregate(query)
@@ -73,29 +92,31 @@ class ControlService:
             return result[0]["count_in_outs"]
         else:
             return 0
-        
+
     @classmethod
     def count_in_and_outs(
-        cls, participant_control_code: str, location: PyObjectId
+        cls,
+        participant_control_code: str,
+        location: PyObjectId,
     ) -> int:
-    # 1: current in
-    # 0: empty
-    # -1: current out
+        # 1: current in
+        # 0: empty
+        # -1: current out
         query = [
             {
                 "$match": {
                     "disabled": False,
                     "participant_control_code": participant_control_code,
                     "location": location,
-                }
+                },
             },
             {
                 "$group": {
                     "_id": None,
                     "count_in_outs": {
-                        "$sum": {"$cond": [{"$eq": ["$control", "in"]}, 1, -1]}
+                        "$sum": {"$cond": [{"$eq": ["$control", "in"]}, 1, -1]},
                     },
-                }
+                },
             },
         ]
         items = cls.TABLE.aggregate(query)
@@ -105,12 +126,9 @@ class ControlService:
         else:
             return 0
 
-    
     @classmethod
     def exist_participant_control_code(cls, participant_control_code: str) -> bool:
         items = cls.TABLE.count_documents(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {"participant_control_code": participant_control_code, "disabled": False},
         )
-        if items > 0:
-            return True
-        return False
+        return items > 0

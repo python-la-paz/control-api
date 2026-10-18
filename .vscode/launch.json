@@ -2,9 +2,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "envFile": "${workspaceFolder}/.env",
-
             "name": "Python: Uvicorn",
+            "envFile": "${workspaceFolder}/.env",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
@@ -15,9 +14,8 @@
             ]
         },
         {
-            "envFile": "${workspaceFolder}/.env",
-
             "name": "Python: Run Single File",
+            "envFile": "${workspaceFolder}/.env",
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",

@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pymongo.collection import ReturnDocument
 
 from app.core.database import db
@@ -45,7 +46,9 @@ class PointService:
 
     @classmethod
     def get_by_participant_and_presentation(
-        cls, participant_control_code: str, presentation_id: PyObjectId
+        cls,
+        participant_control_code: str,
+        presentation_id: PyObjectId,
     ) -> PointInDB | None:
         item = cls.TABLE.find_one(
             {
@@ -53,19 +56,30 @@ class PointService:
                 "presentation": presentation_id,
                 "disabled": False,
                 "is_participation": False,
-            }
+            },
         )
         if item is not None:
             return PointInDB(**item)
         return item
 
     @classmethod
-    def exist_participant_control_code(
-        cls, participant_control_code: str
+    def exist_by_participant_and_checkpoint(
+        cls,
+        participant_control_code: str,
+        checkpoint_link_id: PyObjectId,
     ) -> bool:
         items = cls.TABLE.count_documents(
-            {"participant_control_code": participant_control_code, "disabled": False}
+            {
+                "participant_control_code": participant_control_code,
+                "checkpoint_link": checkpoint_link_id,
+                "disabled": False,
+            },
         )
-        if items > 0:
-            return True
-        return False
+        return items > 0
+
+    @classmethod
+    def exist_participant_control_code(cls, participant_control_code: str) -> bool:
+        items = cls.TABLE.count_documents(
+            {"participant_control_code": participant_control_code, "disabled": False},
+        )
+        return items > 0
