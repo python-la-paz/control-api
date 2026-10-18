@@ -37,5 +37,6 @@ jobs:
       deployment_ref: ${{ vars.ARGOCD_REF || 'main' }}
       image_repository_path: ${{ vars.ARGOCD_IMAGE_REPOSITORY_PATH || '.image.repository' }}
       image_tag_path: ${{ vars.ARGOCD_IMAGE_TAG_PATH || '.image.tag' }}
+      argocd_values_file: ${{ vars.ARGOCD_VALUES_FILE }}
     secrets:
       token: ${{ secrets.ARGOCD_GH_TOKEN }}
