@@ -33,8 +33,8 @@ jobs:
       image_tag: ${{ needs.build.outputs.image_tag }}
       deployment_repository: ${{ vars.ARGOCD_REPOSITORY }}
       deployment_ref: ${{ vars.ARGOCD_REF || 'main' }}
-      image_repository_path: ${{ vars.ARGOCD_IMAGE_REPOSITORY_PATH || '.image.repository' }}
-      image_tag_path: ${{ vars.ARGOCD_IMAGE_TAG_PATH || '.image.tag' }}
+      image_repository_path: ${{ vars.ARGOCD_IMAGE_REPOSITORY_PATH || '.control-api.image.repository' }}
+      image_tag_path: ${{ vars.ARGOCD_IMAGE_TAG_PATH || '.control-api.image.tag' }}
       argocd_values_file: ${{ vars.ARGOCD_VALUES_FILE }}
     secrets:
       token: ${{ secrets.ARGOCD_GH_TOKEN }}
