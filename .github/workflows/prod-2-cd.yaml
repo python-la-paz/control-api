@@ -28,6 +28,9 @@ on:
         required: false
         default: .image.tag
         type: string
+      argocd_values_file:
+        required: true
+        type: string
     secrets:
       token:
         required: true
